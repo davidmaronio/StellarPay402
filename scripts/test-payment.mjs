@@ -32,6 +32,8 @@ async function run() {
   // 1. Generate payer keypair
   const payer = Keypair.random();
   console.log("Payer public key:", payer.publicKey());
+  console.log("Payer secret key:", payer.secret());
+  console.log("(save the secret if you want to reuse this wallet, e.g. for STELLAR_SECRET_KEY in mcp-server)");
 
   // 2. Fund with Friendbot (retry up to 3 times — Friendbot is sometimes flaky)
   console.log("Funding via Friendbot...");
