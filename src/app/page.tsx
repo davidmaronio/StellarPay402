@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Zap, Globe, Bot, Store } from "lucide-react";
 
 export default function LandingPage() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   return (
     <div className="min-h-screen bg-neutral-950 text-white">
       {/* Nav */}
@@ -84,7 +85,7 @@ export default function LandingPage() {
           </p>
           <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 font-mono text-xs">
             <div className="text-neutral-600 mb-1">{"# An agent calls a paid endpoint. Payment is automatic."}</div>
-            <div className="text-green-400">{"curl http://localhost:3000/n4buhayk/weather \\"}</div>
+            <div className="text-green-400">{`curl ${appUrl}/n4buhayk/weather \\`}</div>
             <div className="text-green-400 pl-4">{"-H 'X-PAYMENT: <base64 x402 payload>'"}</div>
             <div className="text-neutral-500 mt-2">{"→ HTTP 200  X-Payment-Receipt: <stellar tx hash>"}</div>
           </div>

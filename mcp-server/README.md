@@ -25,7 +25,7 @@ The server reads everything from environment variables.
 | Variable | Required | Default | Description |
 | --- | --- | --- | --- |
 | `STELLAR_SECRET_KEY` | yes | none | Stellar testnet secret key (`S...`). Used to sign x402 payments. |
-| `MARKETPLACE_URL` | no | `http://localhost:3000` | Base URL of the StellarPay402 marketplace. |
+| `MARKETPLACE_URL` | no | `https://stellar-pay402.vercel.app` | Base URL of the StellarPay402 marketplace. Use `http://localhost:3000` if you are running the marketplace locally. |
 | `MAX_USDC_PER_SESSION` | no | `0.50` | Spending cap per session, enforced by the client. The server refuses any payment that would push your cumulative spend past this. |
 
 ### Get a testnet wallet
@@ -48,7 +48,7 @@ Add this block to `~/Library/Application Support/Claude/claude_desktop_config.js
       "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
       "env": {
         "STELLAR_SECRET_KEY": "S...",
-        "MARKETPLACE_URL": "https://stellarpay402.vercel.app",
+        "MARKETPLACE_URL": "https://stellar-pay402.vercel.app",
         "MAX_USDC_PER_SESSION": "0.50"
       }
     }

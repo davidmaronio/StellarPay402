@@ -21,6 +21,7 @@ export default function MarketplacePage() {
   const [loading, setLoading]     = useState(true);
   const [search, setSearch]       = useState("");
   const [copied, setCopied]       = useState<string | null>(null);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   useEffect(() => {
     fetch("/api/marketplace")
@@ -189,7 +190,7 @@ export default function MarketplacePage() {
       "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
       "env": {
         "STELLAR_SECRET_KEY":   "S...your testnet secret...",
-        "MARKETPLACE_URL":      "http://localhost:3000",
+        "MARKETPLACE_URL":      "${appUrl}",
         "MAX_USDC_PER_SESSION": "0.50"
       }
     }

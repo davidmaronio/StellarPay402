@@ -187,7 +187,7 @@ Add to ~/Library/Application Support/Claude/claude_desktop_config.json:
       "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
       "env": {
         "STELLAR_SECRET_KEY":   "S...",
-        "MARKETPLACE_URL":      "https://stellarpay402.vercel.app",
+        "MARKETPLACE_URL":      "https://stellar-pay402.vercel.app",
         "MAX_USDC_PER_SESSION": "0.50"
       }
     }
