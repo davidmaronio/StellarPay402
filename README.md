@@ -6,11 +6,13 @@ I built this for [Stellar Hacks: Agents 2026](https://dorahacks.io).
 
 - **Live demo:** <https://stellar-pay402.vercel.app>
 - **npm package:** <https://www.npmjs.com/package/@davidmaronio/stellarpay402-mcp>
-- **Soroban contract (testnet):** `CAUM7HCRCTSBSCPUWOZL2AOKO4YM53HJT7S4737C4U7Z6ZFVHHECMJ4I`
+- **Soroban contract (testnet):** `CCCCETOWJQQPIGRKSJW7M4ULM7MBKIVTIRLA7NJTVSGR3XG2KSZZXYA7`
 
 ## Why this exists
 
-Most APIs are free or behind a subscription. Free APIs break or rate limit you. Subscription APIs need a human with a credit card, so an AI agent cannot use them.
+**The agent-to-agent problem.** Most APIs are free or behind a subscription. Free APIs break or rate limit you. Subscription APIs need a human with a credit card, so an AI agent cannot use them autonomously.
+
+StellarPay402 removes every human from the loop: one AI agent lists its output as a paid endpoint, another AI agent discovers it via MCP, pays $0.01 USDC on Stellar, and gets the response — all without any human approval. That is the headline no other project has shipped on Stellar.
 
 HTTP 402 was reserved for "Payment Required" decades ago. Nobody used it until the x402 protocol came along. x402 fixes the protocol part, but three problems remain:
 
@@ -185,7 +187,26 @@ See [`mcp-server/README.md`](./mcp-server/README.md) for the install steps. The 
 
 ## Soroban EndpointRegistry
 
-See [`contracts/endpoint_registry/README.md`](./contracts/endpoint_registry/README.md). When `REGISTRY_CONTRACT_ID` is set, every endpoint creation also submits a `register` transaction to the contract. The contract emits an on chain event with the owner, the payout address, the price in stroops, and the endpoint name. It also has `update` (owner only), `attest` (anyone can leave a reputation note), `get`, and `count`.
+See [`contracts/endpoint_registry/README.md`](./contracts/endpoint_registry/README.md). When `REGISTRY_CONTRACT_ID` is set, every endpoint creation also submits a `register` transaction to the contract. The contract emits an on chain event with the owner, the payout address, the price in stroops, and the endpoint name. It also has `update` (owner only), `attest` (open — no auth required, paid x402 call acts as spam filter), `get`, and `count`.
+
+### Attestation design
+
+`attest(endpoint_id, payer, rating, comment)` does **not** require `payer.require_auth()`. The economic cost of the preceding x402 payment is the spam filter — only callers who have already paid can practically submit attestations. This allows the marketplace proxy to anchor the real caller's Stellar address on chain without needing their private key. Each attestation emits an `("att", endpoint_id, payer)` event readable from Stellar Expert.
+
+Contract: `CCCCETOWJQQPIGRKSJW7M4ULM7MBKIVTIRLA7NJTVSGR3XG2KSZZXYA7`
+
+## Demo AI endpoint (agent-to-agent)
+
+The repo ships a built-in AI endpoint at `/api/demo/ai-answer` that answers natural language questions. Register it from the dashboard (mark "AI-powered"), point the target URL at `https://stellar-pay402.vercel.app/api/demo/ai-answer`, and set a price.
+
+Any other AI agent can then call it via MCP — it discovers the endpoint, pays USDC, and receives a JSON answer. If `ANTHROPIC_API_KEY` is set the response comes from Claude Haiku; otherwise a rich mock response is returned so the demo works without a key.
+
+Example call after payment:
+
+```bash
+curl "https://stellar-pay402.vercel.app/api/demo/ai-answer?q=What+is+x402"
+# -> { "answer": "...", "model": "claude-haiku-4-5", "paidVia": "x402 · Stellar testnet · USDC" }
+```
 
 ## Which x402 implementation this uses
 

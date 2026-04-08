@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { name, slug, targetUrl, priceUsdc, stellarAddress, description } = await req.json();
+  const { name, slug, targetUrl, priceUsdc, stellarAddress, description, isAiPowered } = await req.json();
 
   if (!name || !slug || !targetUrl || !priceUsdc || !stellarAddress) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     priceUsdc:      parseFloat(priceUsdc),
     stellarAddress,
     description,
+    isAiPowered:    Boolean(isAiPowered),
   }).returning();
 
   // Anchor the endpoint on-chain via the EndpointRegistry contract.

@@ -15,6 +15,7 @@ interface Endpoint {
   priceUsdc: number;
   stellarAddress: string;
   active: boolean;
+  isAiPowered: boolean;
   totalRequests: number;
   paidRequests: number;
   totalEarned: number;
@@ -224,6 +225,11 @@ export default function DashboardPage() {
                         >
                           {ep.active ? "● active" : "○ inactive"}
                         </span>
+                        {ep.isAiPowered && (
+                          <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-mono border text-primary bg-primary/10 border-primary/30">
+                            <Bot size={9} /> AI Agent
+                          </span>
+                        )}
                         {ep.onChainTxHash ? (
                           <a
                             href={`https://stellar.expert/explorer/testnet/tx/${ep.onChainTxHash}`}

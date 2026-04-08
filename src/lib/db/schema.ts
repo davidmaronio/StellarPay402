@@ -64,6 +64,8 @@ export const endpoints = pgTable("endpoints", {
   // On-chain anchor on the Soroban EndpointRegistry contract.
   // Null means the endpoint has not been (or failed to be) anchored.
   onChainTxHash:  text("on_chain_tx_hash"),
+  // True when the endpoint is itself AI-generated output (agent sells to agent).
+  isAiPowered:    boolean("is_ai_powered").notNull().default(false),
   createdAt:      timestamp("created_at").notNull().defaultNow(),
   updatedAt:      timestamp("updated_at").notNull().defaultNow(),
 });

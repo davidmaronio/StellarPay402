@@ -11,7 +11,7 @@ The contract does not hold funds. It does not take part in payment settlement. x
 | `init(admin)` | admin | One time setup. Stores the admin address. |
 | `register(endpoint_id, owner, pay_to, price_stroops, name)` | owner | Registers a new endpoint. Fails if `endpoint_id` already exists or if `price_stroops <= 0`. |
 | `update(endpoint_id, new_price_stroops, active)` | owner | Updates the price and active flag on an existing endpoint. |
-| `attest(endpoint_id, payer, rating, comment)` | payer | Saves an on chain reputation note. `rating` must be `0..=5`. |
+| `attest(endpoint_id, payer, rating, comment)` | none | Saves an on chain reputation note. `rating` must be `1..=5`. No auth required — the paid x402 call acts as the spam filter. |
 | `get(endpoint_id)` | none | Returns `Option<EndpointRecord>`. Read only. |
 | `count()` | none | Returns the total number of endpoints ever registered. |
 
@@ -84,6 +84,14 @@ Set the environment variables in the parent app:
 REGISTRY_CONTRACT_ID=<CONTRACT_ID>
 REGISTRY_SUBMITTER_SECRET=<secret-key-that-pays-fees>
 ```
+
+### Live contract (Stellar testnet)
+
+```
+CCCCETOWJQQPIGRKSJW7M4ULM7MBKIVTIRLA7NJTVSGR3XG2KSZZXYA7
+```
+
+Notable design decision: `attest()` has no `require_auth()` guard. The marketplace proxy submits attestations with the caller's real Stellar G-address for attribution. The economic cost of the preceding x402 call acts as the spam filter. Rating range is `1..=5` (previously `0..=5`, updated in v2 deploy).
 
 Once these variables are set, every new endpoint created through the StellarPay402 dashboard automatically emits a `reg` event on this contract.
 

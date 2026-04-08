@@ -33,6 +33,7 @@ export async function PATCH(
   if (typeof body.description    === "string")  patch.description    = body.description;
   if (typeof body.stellarAddress === "string")  patch.stellarAddress = body.stellarAddress;
   if (typeof body.active         === "boolean") patch.active         = body.active;
+  if (typeof body.isAiPowered   === "boolean") patch.isAiPowered    = body.isAiPowered;
   if (body.priceUsdc !== undefined) {
     const n = parseFloat(body.priceUsdc);
     if (!isFinite(n) || n <= 0) return NextResponse.json({ error: "Invalid priceUsdc" }, { status: 400 });

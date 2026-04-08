@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Copy, CheckCircle, Zap, Search, Bot } from "lucide-react";
+import { Copy, CheckCircle, Zap, Search, Bot, Star } from "lucide-react";
 import { CodeBlock } from "@/components/ui/code-block";
 import { MarketingHeader } from "@/components/ui/marketing-header";
 import { AppHeader } from "@/components/ui/app-header";
@@ -16,6 +16,10 @@ interface MarketplaceEndpoint {
   priceUsdc: number;
   totalRequests: number;
   paidRequests: number;
+  isAiPowered: boolean;
+  onChainTxHash: string | null;
+  avgRating: number | null;
+  ratingCount: number;
   userSlug: string;
   userName: string;
 }
@@ -129,12 +133,33 @@ export default function MarketplacePage() {
                   {/* Top row: name + price */}
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-foreground text-base group-hover:text-primary transition-colors truncate">
-                        {ep.name}
-                      </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        by <span className="text-primary">@{ep.userSlug}</span>
-                      </p>
+                      <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                        <h3 className="font-semibold text-foreground text-base group-hover:text-primary transition-colors truncate">
+                          {ep.name}
+                        </h3>
+                        {ep.isAiPowered && (
+                          <span className="inline-flex items-center gap-1 bg-primary/10 border border-primary/30 text-primary rounded-full px-2 py-0.5 text-[10px] font-medium shrink-0">
+                            <Bot size={9} /> AI Agent
+                          </span>
+                        )}
+                        {ep.onChainTxHash && (
+                          <span className="inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full px-2 py-0.5 text-[10px] font-medium shrink-0">
+                            ⬡ on-chain
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground">
+                          by <span className="text-primary">@{ep.userSlug}</span>
+                        </p>
+                        {ep.avgRating !== null && ep.ratingCount > 0 && (
+                          <span className="flex items-center gap-0.5 text-[10px] text-amber-400">
+                            <Star size={9} className="fill-amber-400" />
+                            {Number(ep.avgRating).toFixed(1)}
+                            <span className="text-muted-foreground/60 ml-0.5">({ep.ratingCount})</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-base font-mono font-bold text-foreground tabular-nums">

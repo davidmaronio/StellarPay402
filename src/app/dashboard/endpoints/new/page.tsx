@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Globe, Wallet, Plus } from "lucide-react";
+import { ArrowLeft, Globe, Wallet, Plus, Bot } from "lucide-react";
 import { AppHeader } from "@/components/ui/app-header";
 
 export default function NewEndpointPage() {
@@ -15,6 +15,7 @@ export default function NewEndpointPage() {
     priceUsdc: "0.01",
     stellarAddress: "",
     description: "",
+    isAiPowered: false,
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -142,6 +143,29 @@ export default function NewEndpointPage() {
                 className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
+
+            {/* AI-powered toggle */}
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={form.isAiPowered}
+                  onChange={(e) => setForm((f) => ({ ...f, isAiPowered: e.target.checked }))}
+                  className="sr-only peer"
+                />
+                <div className="w-10 h-6 bg-muted border border-border rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                  <Bot size={14} className="text-primary" />
+                  AI-powered endpoint
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Mark this if your target URL is backed by an AI model — enables the "AI Agent" badge in the marketplace
+                </p>
+              </div>
+            </label>
           </div>
 
           {/* Payment settings card */}
