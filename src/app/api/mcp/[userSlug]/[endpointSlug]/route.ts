@@ -49,11 +49,12 @@ export async function GET(
     // Claude Desktop / Cursor MCP server config snippet.
     // The stellarpay402 MCP server auto-discovers every endpoint in the
     // marketplace as a tool — you only register the server once, not per
-    // endpoint. Replace the absolute path with your local clone path.
+    // endpoint. No clone or install required — npx fetches the published
+    // package from npm on first run.
     mcpServerConfig: {
       stellarpay402: {
-        command: "node",
-        args:    ["/absolute/path/to/StellarPay402/mcp-server/index.mjs"],
+        command: "npx",
+        args:    ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
         env: {
           STELLAR_SECRET_KEY:   "<YOUR_STELLAR_TESTNET_SECRET_KEY>",
           MARKETPLACE_URL:      baseUrl,

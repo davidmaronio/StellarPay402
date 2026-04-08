@@ -172,14 +172,14 @@ console.log("Result:",     result);`}</code>
               <span className="text-[10px] uppercase tracking-wider text-emerald-400">Zero code</span>
             </div>
             <p className="text-xs text-neutral-400 mb-2">
-              Clone the repo, then add this to your <code className="text-neutral-300">claude_desktop_config.json</code>:
+              Add this to your <code className="text-neutral-300">claude_desktop_config.json</code> — no clone, no install:
             </p>
             <pre className="overflow-x-auto rounded-md bg-neutral-950 border border-neutral-900 p-4 text-xs text-neutral-300">
               <code>{`{
   "mcpServers": {
     "stellarpay402": {
-      "command": "node",
-      "args": ["/absolute/path/to/StellarPay402/mcp-server/index.mjs"],
+      "command": "npx",
+      "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
       "env": {
         "STELLAR_SECRET_KEY":   "S...your testnet secret...",
         "MARKETPLACE_URL":      "${appUrl}",
@@ -190,7 +190,7 @@ console.log("Result:",     result);`}</code>
 }`}</code>
             </pre>
             <p className="mt-3 text-xs text-neutral-400">
-              Restart Claude Desktop. Every public endpoint in this marketplace will appear as a tool named <code className="text-neutral-200">{userSlug}_{slug}</code>. The AI signs x402 payments autonomously and respects the per-session USDC budget. Setup steps in <code className="text-neutral-200">mcp-server/README.md</code>.
+              Restart Claude Desktop. Every public endpoint in this marketplace will appear as a tool named <code className="text-neutral-200">{userSlug}_{slug}</code>. The AI signs x402 payments autonomously and respects the per-session USDC budget.
             </p>
           </div>
         </div>

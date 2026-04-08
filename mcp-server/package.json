@@ -1,7 +1,7 @@
 {
-  "name": "stellarpay402-mcp",
+  "name": "@davidmaronio/stellarpay402-mcp",
   "version": "0.1.0",
-  "description": "MCP server that bridges any AI assistant to the StellarPay402 marketplace. AI agents discover and pay for APIs autonomously using x402 on Stellar.",
+  "description": "MCP server that bridges any AI assistant to a StellarPay402 marketplace. AI agents discover paid APIs and pay for them autonomously using x402 on Stellar.",
   "type": "module",
   "bin": {
     "stellarpay402-mcp": "./index.mjs"
@@ -13,8 +13,24 @@
   "scripts": {
     "start": "node index.mjs"
   },
-  "keywords": ["mcp", "x402", "stellar", "agent", "ai", "claude"],
+  "keywords": ["mcp", "model-context-protocol", "x402", "stellar", "soroban", "agent", "ai", "claude", "claude-desktop", "cursor", "usdc"],
   "license": "MIT",
+  "author": "davidmaronio",
+  "homepage": "https://github.com/davidmaronio/StellarPay402#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidmaronio/StellarPay402.git",
+    "directory": "mcp-server"
+  },
+  "bugs": {
+    "url": "https://github.com/davidmaronio/StellarPay402/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@stellar/stellar-sdk": "^15.0.1",

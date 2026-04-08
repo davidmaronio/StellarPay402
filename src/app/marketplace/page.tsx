@@ -178,15 +178,15 @@ export default function MarketplacePage() {
             <h2 className="text-sm font-semibold text-white">Using the marketplace from an AI agent</h2>
           </div>
           <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
-            Clone the repo and run the StellarPay402 MCP server once. Every public endpoint above becomes a tool any MCP-aware assistant (Claude Desktop, Cursor, Cline) can call. The server signs x402 payments on the agent's behalf and respects a per-session USDC budget.
+            Add one MCP server to your AI assistant. Every public endpoint above becomes a tool that any MCP-aware client (Claude Desktop, Cursor, Cline) can call. The server signs x402 payments on the agent's behalf and respects a per-session USDC budget. No clone, no install — npx fetches it on first run.
           </p>
           <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 font-mono text-xs text-neutral-300 overflow-x-auto">
             <div className="text-neutral-600 mb-1">{"// ~/Library/Application Support/Claude/claude_desktop_config.json"}</div>
             <pre className="leading-snug whitespace-pre">{`{
   "mcpServers": {
     "stellarpay402": {
-      "command": "node",
-      "args": ["/absolute/path/to/StellarPay402/mcp-server/index.mjs"],
+      "command": "npx",
+      "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
       "env": {
         "STELLAR_SECRET_KEY":   "S...your testnet secret...",
         "MARKETPLACE_URL":      "http://localhost:3000",
