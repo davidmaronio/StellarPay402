@@ -31,9 +31,10 @@ export async function POST(
 
   // Best-effort on-chain attestation via Soroban EndpointRegistry
   const txHash = await attestEndpointOnChain({
-    endpointId: endpoint.id,
+    endpointId:   endpoint.id,
     rating,
-    comment: comment ?? "",
+    comment:      comment ?? "",
+    payerAddress: payerAddress ?? undefined,
   });
 
   await db.insert(attestations).values({

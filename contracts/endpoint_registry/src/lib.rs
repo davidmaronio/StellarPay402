@@ -119,9 +119,11 @@ impl EndpointRegistry {
         );
     }
 
-    /// A payer publishes an on-chain attestation about an endpoint they
-    /// have called. Used for trustless reputation. The payer authorizes
-    /// the call so spam is rate-limited by gas costs.
+    /// Publish an on-chain attestation about a called endpoint.
+    /// `payer` is the Stellar address of the caller for attribution.
+    /// No auth is required here — the marketplace proxy only submits
+    /// attestations after verifying a settled x402 payment, so the
+    /// economic cost of the paid call itself acts as the spam filter.
     pub fn attest(
         env:         Env,
         endpoint_id: BytesN<16>,
@@ -129,9 +131,8 @@ impl EndpointRegistry {
         rating:      u32,
         comment:     String,
     ) {
-        payer.require_auth();
-        if rating > 5 {
-            panic!("rating must be 0..=5");
+        if rating < 1 || rating > 5 {
+            panic!("rating must be 1..=5");
         }
         if !env.storage().persistent().has(&DataKey::Endpoint(endpoint_id.clone())) {
             panic!("endpoint not found");

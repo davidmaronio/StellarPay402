@@ -38,9 +38,10 @@ function uuidToBytes16(uuid: string): Buffer {
  * creation never fails because of registry issues.
  */
 export type AttestArgs = {
-  endpointId: string; // UUID
-  rating:     number; // 1–5
-  comment:    string;
+  endpointId:   string; // UUID
+  rating:       number; // 1–5
+  comment:      string;
+  payerAddress?: string; // G... — caller's real Stellar address for attribution
 };
 
 /**
@@ -57,10 +58,14 @@ export async function attestEndpointOnChain(args: AttestArgs): Promise<string | 
     const contract  = new Contract(REGISTRY_ID);
     const idBytes   = uuidToBytes16(args.endpointId);
 
+    // Use the caller's real Stellar address for on-chain attribution.
+    // Falls back to the submitter key if none was provided.
+    const payerAddress = args.payerAddress ?? submitter.publicKey();
+
     const op = contract.call(
       "attest",
       nativeToScVal(idBytes,               { type: "bytes" }),
-      new Address(submitter.publicKey()).toScVal(),
+      new Address(payerAddress).toScVal(),
       nativeToScVal(args.rating,           { type: "u32" }),
       xdr.ScVal.scvString(args.comment),
     );
