@@ -61,7 +61,7 @@ export function MarketingHeader() {
           ))}
           <Link
             href="/login"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3"
           >
             Sign in
           </Link>
@@ -111,22 +111,18 @@ export function MarketingHeader() {
           </div>
           <div className="flex flex-col gap-2">
             <Link
-              href="/login"
-              onClick={() => setOpen(false)}
-              className={buttonVariants({
-                variant: "outline",
-                className: "w-full",
-              })}
-            >
-              Sign in
-            </Link>
-            <Link
               href="/register"
               onClick={() => setOpen(false)}
               className={buttonVariants({ className: "w-full" })}
             >
               Get started
             </Link>
+            <p className="text-center text-xs text-muted-foreground">
+              Already have an account?{" "}
+              <Link href="/login" onClick={() => setOpen(false)} className="text-primary hover:underline">
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>
