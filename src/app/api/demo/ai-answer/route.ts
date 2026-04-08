@@ -45,7 +45,7 @@ async function answer(question: string) {
         "content-type":      "application/json",
       },
       body: JSON.stringify({
-        model:      "claude-haiku-4-5",
+        model:      "claude-haiku-4-5-20251001",
         max_tokens: 512,
         messages:   [{ role: "user", content: question }],
         system:
@@ -70,7 +70,7 @@ async function answer(question: string) {
   } else {
     // Rich mock — works without an API key for demo / local dev
     text  = generateMock(question);
-    model = "mock-agent-v1";
+    model = "mock-agent-v1 (set ANTHROPIC_API_KEY for real Claude)";
   }
 
   return NextResponse.json({
