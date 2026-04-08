@@ -46,13 +46,18 @@ export async function GET(
       payTo:      endpoint.stellarAddress,
       asset:      "USDC",
     },
-    // Claude Desktop / MCP server config snippet
+    // Claude Desktop / Cursor MCP server config snippet.
+    // The stellarpay402 MCP server auto-discovers every endpoint in the
+    // marketplace as a tool — you only register the server once, not per
+    // endpoint. Replace the absolute path with your local clone path.
     mcpServerConfig: {
-      [endpoint.name.toLowerCase().replace(/\s+/g, "-")]: {
-        command: "npx",
-        args:    ["-y", "x402-mcp-client", proxyUrl],
+      stellarpay402: {
+        command: "node",
+        args:    ["/absolute/path/to/StellarPay402/mcp-server/index.mjs"],
         env: {
-          STELLAR_SECRET_KEY: "<YOUR_STELLAR_TESTNET_SECRET_KEY>",
+          STELLAR_SECRET_KEY:   "<YOUR_STELLAR_TESTNET_SECRET_KEY>",
+          MARKETPLACE_URL:      baseUrl,
+          MAX_USDC_PER_SESSION: "0.50",
         },
       },
     },

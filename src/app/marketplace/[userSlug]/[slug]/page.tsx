@@ -166,20 +166,22 @@ console.log("Result:",     result);`}</code>
               <div>
                 <h3 className="text-sm font-semibold text-white">3. Claude / Cursor (MCP)</h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  Install <code className="text-neutral-200">stellarpay402-mcp</code> once. Every endpoint in this marketplace becomes an AI tool with auto-payments.
+                  Run the StellarPay402 MCP server once. Every endpoint in this marketplace becomes an AI tool with auto-payments.
                 </p>
               </div>
               <span className="text-[10px] uppercase tracking-wider text-emerald-400">Zero code</span>
             </div>
-            <p className="text-xs text-neutral-400 mb-2">Add this to your <code className="text-neutral-300">claude_desktop_config.json</code>:</p>
+            <p className="text-xs text-neutral-400 mb-2">
+              Clone the repo, then add this to your <code className="text-neutral-300">claude_desktop_config.json</code>:
+            </p>
             <pre className="overflow-x-auto rounded-md bg-neutral-950 border border-neutral-900 p-4 text-xs text-neutral-300">
               <code>{`{
   "mcpServers": {
     "stellarpay402": {
-      "command": "npx",
-      "args": ["-y", "stellarpay402-mcp"],
+      "command": "node",
+      "args": ["/absolute/path/to/StellarPay402/mcp-server/index.mjs"],
       "env": {
-        "STELLAR_SECRET_KEY":   "S...your testnet key...",
+        "STELLAR_SECRET_KEY":   "S...your testnet secret...",
         "MARKETPLACE_URL":      "${appUrl}",
         "MAX_USDC_PER_SESSION": "0.50"
       }
@@ -188,7 +190,7 @@ console.log("Result:",     result);`}</code>
 }`}</code>
             </pre>
             <p className="mt-3 text-xs text-neutral-400">
-              Restart Claude Desktop. Every public endpoint in this marketplace will appear as a tool named <code className="text-neutral-200">{userSlug}_{slug}</code>. The AI signs payments autonomously and respects the per-session USDC budget.
+              Restart Claude Desktop. Every public endpoint in this marketplace will appear as a tool named <code className="text-neutral-200">{userSlug}_{slug}</code>. The AI signs x402 payments autonomously and respects the per-session USDC budget. Setup steps in <code className="text-neutral-200">mcp-server/README.md</code>.
             </p>
           </div>
         </div>
