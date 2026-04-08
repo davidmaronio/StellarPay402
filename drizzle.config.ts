@@ -1,11 +1,12 @@
 import type { Config } from "drizzle-kit";
+import { loadEnvConfig } from "@next/env";
+
+loadEnvConfig(process.cwd());
 
 export default {
   schema: "./src/lib/db/schema.ts",
   out: "./drizzle",
   dialect: "postgresql",
-  // Supabase requires SSL
-
   dbCredentials: {
     url: process.env.DATABASE_URL!,
   },

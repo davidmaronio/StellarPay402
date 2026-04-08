@@ -61,6 +61,9 @@ export const endpoints = pgTable("endpoints", {
   totalRequests:  integer("total_requests").notNull().default(0),
   paidRequests:   integer("paid_requests").notNull().default(0),
   totalEarned:    real("total_earned").notNull().default(0),
+  // On-chain anchor on the Soroban EndpointRegistry contract.
+  // Null means the endpoint has not been (or failed to be) anchored.
+  onChainTxHash:  text("on_chain_tx_hash"),
   createdAt:      timestamp("created_at").notNull().defaultNow(),
   updatedAt:      timestamp("updated_at").notNull().defaultNow(),
 });

@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { db, endpoints } from "@/lib/db";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
+import { registerEndpointOnChain } from "@/lib/registry";
 
 export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -37,5 +38,23 @@ export async function POST(req: NextRequest) {
     description,
   }).returning();
 
-  return NextResponse.json(endpoint, { status: 201 });
+  // Anchor the endpoint on-chain via the EndpointRegistry contract.
+  // Best-effort: failure does not block creation, but if it succeeds we
+  // persist the tx hash so the dashboard can show "anchored on-chain".
+  const onChainTxHash = await registerEndpointOnChain({
+    endpointId:   endpoint.id,
+    ownerAddress: stellarAddress,
+    payToAddress: stellarAddress,
+    priceStroops: BigInt(Math.round(parseFloat(priceUsdc) * 1e7)),
+    name,
+  });
+
+  if (onChainTxHash) {
+    await db
+      .update(endpoints)
+      .set({ onChainTxHash })
+      .where(eq(endpoints.id, endpoint.id));
+  }
+
+  return NextResponse.json({ ...endpoint, onChainTxHash }, { status: 201 });
 }

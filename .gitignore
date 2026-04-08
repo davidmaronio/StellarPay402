@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# private notes
+docs/DEMO_SCRIPT.md
+
+# Soroban / Cargo build artifacts
+contracts/*/target/
+contracts/*/test_snapshots/
+contracts/*/Cargo.lock

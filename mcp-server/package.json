@@ -1,0 +1,23 @@
+{
+  "name": "stellarpay402-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that bridges any AI assistant to the StellarPay402 marketplace. AI agents discover and pay for APIs autonomously using x402 on Stellar.",
+  "type": "module",
+  "bin": {
+    "stellarpay402-mcp": "./index.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "README.md"
+  ],
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "keywords": ["mcp", "x402", "stellar", "agent", "ai", "claude"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@stellar/stellar-sdk": "^13.1.0",
+    "@x402/stellar": "^0.1.0"
+  }
+}
