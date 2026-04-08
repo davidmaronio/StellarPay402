@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Copy, ExternalLink, Zap, CheckCircle, Bot, Trash2, Anchor, RefreshCw, Pencil, X } from "lucide-react";
+import { Plus, Copy, ExternalLink, Zap, CheckCircle, Bot, Trash2, Anchor, RefreshCw, Pencil, X, LayoutGrid, Activity, Wallet, LogOut } from "lucide-react";
 
 interface Endpoint {
   id: string;
@@ -114,81 +114,165 @@ export default function DashboardPage() {
   const user = session.user as any;
 
   return (
-    <div className="min-h-screen bg-neutral-950">
+    <div className="min-h-screen bg-background">
       {/* Nav */}
-      <nav className="border-b border-neutral-800 sticky top-0 z-50 bg-neutral-950">
-        <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-xs text-white">S</div>
-            <span className="font-semibold text-white text-sm">StellarPay402</span>
-            <span className="text-neutral-700">/</span>
-            <span className="text-neutral-500 text-sm">{user.name}</span>
+      <nav className="border-b border-border sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <Link href="/" className="flex items-center gap-2 group shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground shadow-lg shadow-primary/20">
+                S
+              </div>
+              <span className="font-semibold text-foreground text-sm hidden sm:block group-hover:text-primary transition-colors">
+                StellarPay402
+              </span>
+            </Link>
+            <span className="text-muted-foreground/40 hidden sm:block">/</span>
+            <Link
+              href="/dashboard"
+              className="text-sm text-foreground font-medium truncate hidden sm:block hover:text-primary transition-colors"
+            >
+              Dashboard
+            </Link>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-neutral-500 font-mono hidden sm:block">
-              proxy slug: <span className="text-indigo-400">{user.slug ?? "—"}</span>
-            </span>
-            <button onClick={() => signOut().then(() => router.push("/"))}
-              className="text-xs text-neutral-500 hover:text-white border border-neutral-800 hover:border-neutral-600 rounded-lg px-3 py-1.5 transition-colors">
-              Sign out
-            </button>
+
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Link
+              href="/marketplace"
+              className="hidden md:inline-flex text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
+            >
+              Marketplace
+            </Link>
+            {user.slug && (
+              <div className="hidden md:flex items-center gap-1.5 bg-secondary border border-border rounded-full px-3 py-1 text-xs font-mono text-secondary-foreground">
+                <span className="text-muted-foreground">slug:</span>
+                <span className="text-primary">{user.slug}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2 bg-card border border-border rounded-full pl-1 pr-2 py-1">
+              <div className="w-6 h-6 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-[10px] font-bold text-primary-foreground">
+                {(user.name ?? "?").charAt(0).toUpperCase()}
+              </div>
+              <span className="text-xs text-foreground hidden sm:block max-w-[100px] truncate">
+                {user.name}
+              </span>
+              <button
+                onClick={() => signOut().then(() => router.push("/"))}
+                title="Sign out"
+                className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+              >
+                <LogOut size={12} />
+              </button>
+            </div>
           </div>
         </div>
       </nav>
 
-      <main className="max-w-5xl mx-auto px-5 py-8">
+      <main className="max-w-6xl mx-auto px-5 py-10">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-lg font-semibold text-white">Endpoints</h1>
-            <p className="text-sm text-neutral-500 mt-0.5">Each endpoint is a paid proxy URL on Stellar testnet</p>
+            <div className="inline-flex items-center gap-2 bg-secondary border border-border rounded-full px-3 py-1 text-xs text-secondary-foreground font-mono mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block animate-pulse" />
+              Stellar Testnet
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+              Welcome back, <span className="text-primary">{user.name?.split(" ")[0] ?? "developer"}</span>
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1.5">
+              Each endpoint is a paid proxy URL anchored on Soroban
+            </p>
           </div>
-          <Link href="/dashboard/endpoints/new"
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-            <Plus size={14} />
+          <Link
+            href="/dashboard/endpoints/new"
+            className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-lg shadow-primary/20 self-start sm:self-auto"
+          >
+            <Plus size={15} />
             New endpoint
           </Link>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {[
-            { label: "Total endpoints",   value: endpoints.length },
-            { label: "Total requests",    value: endpoints.reduce((s, e) => s + e.totalRequests, 0) },
-            { label: "Total earned",      value: `$${endpoints.reduce((s, e) => s + e.totalEarned, 0).toFixed(4)} USDC` },
-          ].map(s => (
-            <div key={s.label} className="bg-neutral-900 border border-neutral-800 rounded-xl px-5 py-4">
-              <p className="text-2xl font-bold text-white">{s.value}</p>
-              <p className="text-xs text-neutral-500 mt-1">{s.label}</p>
+            {
+              label: "Total endpoints",
+              value: endpoints.length.toString(),
+              icon: LayoutGrid,
+            },
+            {
+              label: "Total requests",
+              value: endpoints.reduce((s, e) => s + e.totalRequests, 0).toString(),
+              icon: Activity,
+            },
+            {
+              label: "Total earned",
+              value: `$${endpoints.reduce((s, e) => s + e.totalEarned, 0).toFixed(4)}`,
+              suffix: "USDC",
+              icon: Wallet,
+            },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="bg-card border border-border rounded-2xl p-5 hover:border-primary/30 transition-colors group"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">{s.label}</p>
+                <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center group-hover:bg-primary/10 group-hover:border-primary/30 transition-colors">
+                  <s.icon size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
+                </div>
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <p className="text-3xl font-bold text-foreground tracking-tight tabular-nums">{s.value}</p>
+                {s.suffix && (
+                  <span className="text-xs text-muted-foreground font-mono">{s.suffix}</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
 
         {/* Endpoints list */}
         {loading ? (
-          <div className="text-center py-16 text-neutral-600 text-sm">Loading…</div>
+          <div className="text-center py-16 text-muted-foreground/70 text-sm">Loading…</div>
         ) : endpoints.length === 0 ? (
-          <div className="border border-dashed border-neutral-800 rounded-xl py-16 text-center">
-            <Zap size={24} className="text-neutral-700 mx-auto mb-3" />
-            <p className="text-neutral-500 text-sm font-medium">No endpoints yet</p>
-            <p className="text-neutral-600 text-xs mt-1 mb-4">Create your first paid proxy endpoint</p>
-            <Link href="/dashboard/endpoints/new"
-              className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors">
-              <Plus size={13} /> New endpoint
+          <div className="border border-dashed border-border rounded-2xl py-20 text-center bg-card/30">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center mb-4">
+              <Zap size={22} className="text-primary" />
+            </div>
+            <h3 className="text-foreground text-base font-semibold">No endpoints yet</h3>
+            <p className="text-muted-foreground text-sm mt-1 mb-5 max-w-xs mx-auto">
+              Create your first paid proxy endpoint to start earning USDC on Stellar
+            </p>
+            <Link
+              href="/dashboard/endpoints/new"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-lg shadow-primary/20"
+            >
+              <Plus size={14} /> Create your first endpoint
             </Link>
           </div>
         ) : (
           <div className="space-y-3">
-            {endpoints.map(ep => {
+            {endpoints.map((ep) => {
               const proxyUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/${user.slug}/${ep.slug}`;
               return (
-                <div key={ep.id} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
-                  <div className="flex items-start justify-between gap-4">
+                <div
+                  key={ep.id}
+                  className="bg-card border border-border rounded-2xl p-5 hover:border-primary/30 transition-colors"
+                >
+                  {/* Top row: name, status badges, stats */}
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="font-semibold text-white text-sm">{ep.name}</h3>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono border ${ep.active ? "text-green-400 bg-green-500/10 border-green-500/20" : "text-neutral-500 bg-neutral-800 border-neutral-700"}`}>
-                          {ep.active ? "active" : "inactive"}
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <h3 className="font-semibold text-foreground text-base">{ep.name}</h3>
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-full font-mono border ${
+                            ep.active
+                              ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/30"
+                              : "text-muted-foreground bg-muted border-border"
+                          }`}
+                        >
+                          {ep.active ? "● active" : "○ inactive"}
                         </span>
                         {ep.onChainTxHash ? (
                           <a
@@ -196,79 +280,120 @@ export default function DashboardPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             title="View on-chain anchor on Stellar Expert"
-                            className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-mono border text-emerald-400 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                            className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-mono border text-emerald-300 bg-emerald-500/10 border-emerald-500/30 hover:bg-emerald-500/20 transition-colors"
                           >
                             <Anchor size={9} /> on-chain
                           </a>
                         ) : (
-                          <span className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded font-mono border text-amber-400 bg-amber-500/10 border-amber-500/20" title="Not anchored on Soroban EndpointRegistry">
+                          <span
+                            className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-mono border text-amber-300 bg-amber-500/10 border-amber-500/30"
+                            title="Not anchored on Soroban EndpointRegistry"
+                          >
                             ⚠ db only
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <code className="text-xs text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 rounded px-2 py-1 truncate max-w-xs">
+
+                      {/* Proxy URL pill row */}
+                      <div className="flex items-center gap-2">
+                        <code className="text-xs text-primary bg-muted border border-border rounded-lg px-3 py-1.5 truncate max-w-md font-mono">
                           {proxyUrl}
                         </code>
-                        <button onClick={() => copyUrl(ep)}
-                          className="text-neutral-500 hover:text-white transition-colors shrink-0">
-                          {copied === ep.id ? <CheckCircle size={13} className="text-green-400" /> : <Copy size={13} />}
+                        <button
+                          onClick={() => copyUrl(ep)}
+                          title="Copy proxy URL"
+                          className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1.5 rounded-lg hover:bg-muted"
+                        >
+                          {copied === ep.id ? (
+                            <CheckCircle size={14} className="text-emerald-400" />
+                          ) : (
+                            <Copy size={14} />
+                          )}
                         </button>
-                        <a href={ep.targetUrl} target="_blank" rel="noopener noreferrer"
-                          className="text-neutral-600 hover:text-neutral-400 transition-colors shrink-0">
-                          <ExternalLink size={13} />
+                        <a
+                          href={ep.targetUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Open target URL"
+                          className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1.5 rounded-lg hover:bg-muted"
+                        >
+                          <ExternalLink size={14} />
                         </a>
-                        <button onClick={() => copyMcpConfig(ep)}
-                          className="flex items-center gap-1 text-[10px] text-neutral-500 hover:text-indigo-400 border border-neutral-800 hover:border-indigo-500/40 rounded px-2 py-1 transition-colors shrink-0">
-                          {copiedMcp === ep.id
-                            ? <><CheckCircle size={10} className="text-green-400" /> Copied!</>
-                            : <><Bot size={10} /> MCP</>
-                          }
-                        </button>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-6 text-right shrink-0">
+                    {/* Right-aligned stats */}
+                    <div className="flex items-center gap-5 sm:gap-6 text-right shrink-0">
                       <div>
-                        <p className="text-sm font-mono font-bold text-green-400">${ep.priceUsdc.toFixed(4)}</p>
-                        <p className="text-[10px] text-neutral-600">per request</p>
+                        <p className="text-base font-mono font-bold text-foreground tabular-nums">
+                          ${ep.priceUsdc.toFixed(4)}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                          per call
+                        </p>
                       </div>
+                      <div className="w-px h-8 bg-border" />
                       <div>
-                        <p className="text-sm font-bold text-white">{ep.paidRequests}</p>
-                        <p className="text-[10px] text-neutral-600">paid reqs</p>
+                        <p className="text-base font-bold text-foreground tabular-nums">
+                          {ep.paidRequests}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                          paid
+                        </p>
                       </div>
+                      <div className="w-px h-8 bg-border" />
                       <div>
-                        <p className="text-sm font-mono font-bold text-indigo-400">${ep.totalEarned.toFixed(4)}</p>
-                        <p className="text-[10px] text-neutral-600">earned</p>
+                        <p className="text-base font-mono font-bold text-primary tabular-nums">
+                          ${ep.totalEarned.toFixed(4)}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
+                          earned
+                        </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-4 pt-3 border-t border-neutral-800">
+                  {/* Action row */}
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border flex-wrap">
+                    <button
+                      onClick={() => copyMcpConfig(ep)}
+                      className="flex items-center gap-1.5 text-xs text-secondary-foreground bg-secondary hover:bg-accent border border-border rounded-lg px-3 py-1.5 transition-colors"
+                    >
+                      {copiedMcp === ep.id ? (
+                        <>
+                          <CheckCircle size={12} className="text-emerald-400" /> MCP config copied
+                        </>
+                      ) : (
+                        <>
+                          <Bot size={12} /> Copy MCP config
+                        </>
+                      )}
+                    </button>
+
                     {!ep.onChainTxHash && (
                       <button
                         onClick={() => reanchorEndpoint(ep)}
-                        className="flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-emerald-400 border border-neutral-800 hover:border-emerald-500/40 rounded-md px-2.5 py-1.5 transition-colors"
+                        className="flex items-center gap-1.5 text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 rounded-lg px-3 py-1.5 transition-colors"
                         title="Retry on-chain registration"
                       >
-                        <RefreshCw size={11} />
-                        Re-anchor on-chain
+                        <RefreshCw size={12} /> Re-anchor
                       </button>
                     )}
-                    <button
-                      onClick={() => setEditing(ep)}
-                      className="flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-indigo-400 border border-neutral-800 hover:border-indigo-500/40 rounded-md px-2.5 py-1.5 transition-colors ml-auto"
-                    >
-                      <Pencil size={11} />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => deleteEndpoint(ep)}
-                      className="flex items-center gap-1.5 text-[11px] text-neutral-400 hover:text-red-400 border border-neutral-800 hover:border-red-500/40 rounded-md px-2.5 py-1.5 transition-colors"
-                    >
-                      <Trash2 size={11} />
-                      Delete
-                    </button>
+
+                    <div className="ml-auto flex items-center gap-2">
+                      <button
+                        onClick={() => setEditing(ep)}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground border border-border hover:border-primary/40 hover:bg-muted rounded-lg px-3 py-1.5 transition-colors"
+                      >
+                        <Pencil size={12} /> Edit
+                      </button>
+                      <button
+                        onClick={() => deleteEndpoint(ep)}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-red-300 border border-border hover:border-red-500/40 hover:bg-red-500/10 rounded-lg px-3 py-1.5 transition-colors"
+                      >
+                        <Trash2 size={12} /> Delete
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -280,21 +405,23 @@ export default function DashboardPage() {
       {/* Edit modal */}
       {editing && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4"
           onClick={() => !savingEdit && setEditing(null)}
         >
           <div
-            className="w-full max-w-lg rounded-xl border border-neutral-800 bg-neutral-950 p-6 shadow-2xl"
+            className="w-full max-w-lg rounded-2xl border border-border bg-card p-6 shadow-2xl shadow-primary/10"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-lg font-semibold text-white">Edit endpoint</h2>
-                <p className="text-xs text-neutral-500 mt-0.5 font-mono">/{user.slug}/{editing.slug}</p>
+                <h2 className="text-lg font-semibold text-foreground">Edit endpoint</h2>
+                <p className="text-xs text-muted-foreground mt-1 font-mono">
+                  /{user.slug}/{editing.slug}
+                </p>
               </div>
               <button
                 onClick={() => !savingEdit && setEditing(null)}
-                className="text-neutral-500 hover:text-white transition-colors"
+                className="text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded-lg hover:bg-muted"
                 aria-label="Close"
               >
                 <X size={18} />
@@ -303,29 +430,35 @@ export default function DashboardPage() {
 
             <form onSubmit={saveEdit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-neutral-400 mb-1.5">Name</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                  Name
+                </label>
                 <input
                   name="name"
                   defaultValue={editing.name}
                   required
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-400 mb-1.5">Target URL</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                  Target URL
+                </label>
                 <input
                   name="targetUrl"
                   type="url"
                   defaultValue={editing.targetUrl}
                   required
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-neutral-400 mb-1.5">Price (USDC)</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                    Price (USDC)
+                  </label>
                   <input
                     name="priceUsdc"
                     type="number"
@@ -333,16 +466,16 @@ export default function DashboardPage() {
                     min="0.0001"
                     defaultValue={editing.priceUsdc}
                     required
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-md px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-indigo-500"
+                    className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground font-mono outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
                 <div className="flex items-end pb-2">
-                  <label className="flex items-center gap-2 text-sm text-neutral-300 cursor-pointer">
+                  <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer select-none">
                     <input
                       name="active"
                       type="checkbox"
                       defaultChecked={editing.active}
-                      className="rounded border-neutral-700 bg-neutral-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-neutral-950"
+                      className="rounded border-border bg-muted text-primary focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
                     />
                     Active
                   </label>
@@ -350,20 +483,22 @@ export default function DashboardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-neutral-400 mb-1.5">Stellar payout address</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                  Stellar payout address
+                </label>
                 <input
                   name="stellarAddress"
                   defaultValue={editing.stellarAddress}
                   required
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-md px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-indigo-500"
+                  className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground font-mono outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex items-center gap-2 pt-3">
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium px-4 py-2 rounded-md transition-colors"
+                  className="flex-1 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-primary-foreground text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors shadow-lg shadow-primary/20"
                 >
                   {savingEdit ? "Saving…" : "Save changes"}
                 </button>
@@ -371,7 +506,7 @@ export default function DashboardPage() {
                   type="button"
                   onClick={() => setEditing(null)}
                   disabled={savingEdit}
-                  className="text-sm text-neutral-400 hover:text-white border border-neutral-800 hover:border-neutral-700 px-4 py-2 rounded-md transition-colors disabled:opacity-50"
+                  className="text-sm text-secondary-foreground bg-secondary hover:bg-accent border border-border px-4 py-2.5 rounded-lg transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
