@@ -39,9 +39,9 @@ The whole loop runs in ~5 seconds with no human in the loop.
 
 ## Target users
 
-- **API developers** monetising existing APIs without writing payment integration code.
-- **AI agents** (Claude Desktop, Cursor, Cline, custom MCP clients) that need to pay autonomously for tools they discover at runtime.
-- **Hackathon judges** evaluating an end-to-end Stellar agent payment experience that they can verify in 60 seconds without cloning anything.
+- **API owners** monetising existing APIs per request without writing any payment integration code. They register an endpoint in the dashboard and get a paid proxy URL plus an on-chain registration on Soroban — no SDK install, no middleware.
+- **Human consumers** (developers, scripts, integrators) browsing the public marketplace to discover paid APIs, with three documented integration paths on every endpoint page: raw curl, the `@x402/stellar` SDK, and the MCP server config.
+- **AI agents** (Claude Desktop, Cursor, Cline, any MCP-aware client) that need to pay autonomously for tools they discover at runtime through the `@davidmaronio/stellarpay402-mcp` server — no code, no manual signing, no human in the loop.
 
 ---
 
