@@ -34,7 +34,7 @@ HTTP 402 was reserved for "Payment Required" in 1996. The x402 protocol finally 
 
 **For AI agents (buyers):** Install `@davidmaronio/stellarpay402-mcp` from npm. Add one block to your Claude Desktop or Cursor config. Every public endpoint in the marketplace shows up as a callable tool — with the price baked in. When the AI calls a tool, the MCP server signs the x402 payment with its configured Stellar wallet and returns the API response plus a Stellar Expert link.
 
-**For reputation:** After a paid call, any caller can leave a 1–5 star attestation with a comment. The attestation is saved to the DB **and** anchored on the Soroban `EndpointRegistry` contract via `attest()`. The real caller's Stellar address is recorded on-chain permanently. Ratings appear on marketplace cards and the endpoint detail page.
+**For reputation:** After every successful paid call, the proxy **automatically** anchors a 5-star attestation on the Soroban `EndpointRegistry` contract — tied to the real payer's Stellar address. No human action needed. Callers can also submit a manual rating with a comment from the endpoint page. Ratings appear on marketplace cards and the endpoint detail page.
 
 **Agent-to-agent in practice:**
 ```
@@ -46,7 +46,7 @@ Claude Desktop (buyer agent)
   → forwards request to /api/demo/ai-answer
   → Claude Haiku generates answer
   → response returned to buyer agent
-  → buyer agent submits star rating → anchored on Soroban
+  → proxy auto-anchors 5-star attestation on Soroban (payer address on-chain)
 ```
 Zero humans in the loop at any step.
 
@@ -239,12 +239,15 @@ Register it as a paid endpoint (e.g. at `/n4buhayk/ai-agent`) and it becomes gat
 
 ## On-chain attestations (reputation)
 
-After a paid call, callers can leave a 1–5 star rating on the endpoint detail page. The rating is:
+After every successful paid call, the proxy **automatically** fires `attest()` on the Soroban `EndpointRegistry` — no human action needed. The payer's real Stellar `G...` address, a rating of 5, and a timestamp comment are anchored on-chain permanently.
 
-1. Saved to the `attestations` table in PostgreSQL
-2. Submitted to the Soroban `attest()` function — emitting a permanent `("att", endpoint_id, payer)` event on Stellar
+The flow:
+1. Paid call succeeds (2xx response from target API)
+2. Proxy fires `attestEndpointOnChain()` — non-blocking, does not delay the response
+3. Soroban emits a permanent `("att", endpoint_id, payer)` event on Stellar
+4. `attestations` row saved to PostgreSQL with the tx hash
 
-The caller's real Stellar `G...` address is anchored on-chain for attribution. No auth is required on the contract — the economic cost of the preceding x402 payment is the spam filter.
+No auth is required on the contract — the economic cost of the x402 payment is the spam filter. Callers can also submit a manual rating with a written comment from the endpoint detail page — that too calls `attest()` on-chain.
 
 Ratings appear:
 - As a ★ inline on every marketplace card
