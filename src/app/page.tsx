@@ -128,7 +128,7 @@ export default function LandingPage() {
       </LampContainer>
 
       {/* Orbital flow */}
-      <section className="relative bg-background">
+      <section id="how-it-works" className="relative bg-background scroll-mt-20">
         <div className="max-w-5xl mx-auto px-5 pt-14 pb-2 text-center">
           <p className="text-xs text-primary font-mono uppercase tracking-widest mb-3">
             How it works

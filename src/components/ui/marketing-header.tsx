@@ -8,9 +8,18 @@ import { cn } from "@/lib/utils";
 
 const links = [
   { label: "Marketplace", href: "/marketplace" },
-  { label: "How it works", href: "/#how-it-works" },
+  { label: "How it works", href: "/#how-it-works", anchor: "how-it-works" },
   { label: "GitHub", href: "https://github.com/davidmaronio/StellarPay402" },
-];
+] as { label: string; href: string; anchor?: string }[];
+
+function scrollToAnchor(id: string) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  } else {
+    window.location.href = `/#${id}`;
+  }
+}
 
 export function MarketingHeader() {
   const [open, setOpen] = React.useState(false);
@@ -51,13 +60,14 @@ export function MarketingHeader() {
 
         <div className="hidden items-center gap-1 md:flex">
           {links.map((link) => (
-            <Link
+            <a
               key={link.label}
               href={link.href}
+              onClick={link.anchor ? (e) => { e.preventDefault(); scrollToAnchor(link.anchor!); } : undefined}
               className={buttonVariants({ variant: "ghost", size: "sm" })}
             >
               {link.label}
-            </Link>
+            </a>
           ))}
           <Link
             href="/login"
@@ -96,17 +106,19 @@ export function MarketingHeader() {
         >
           <div className="grid gap-y-2">
             {links.map((link) => (
-              <Link
+              <a
                 key={link.label}
                 href={link.href}
-                onClick={() => setOpen(false)}
+                onClick={link.anchor
+                  ? (e) => { e.preventDefault(); setOpen(false); scrollToAnchor(link.anchor!); }
+                  : () => setOpen(false)}
                 className={buttonVariants({
                   variant: "ghost",
                   className: "justify-start",
                 })}
               >
                 {link.label}
-              </Link>
+              </a>
             ))}
           </div>
           <div className="flex flex-col gap-2">
