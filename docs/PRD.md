@@ -62,7 +62,7 @@ Enforced server side inside the proxy after every successful verify. Queries the
 ### 4. Soroban EndpointRegistry contract
 
 **Location:** `contracts/endpoint_registry/` (Rust)
-**Deployed:** `CAUM7HCRCTSBSCPUWOZL2AOKO4YM53HJT7S4737C4U7Z6ZFVHHECMJ4I` (testnet)
+**Deployed:** `CCCCETOWJQQPIGRKSJW7M4ULM7MBKIVTIRLA7NJTVSGR3XG2KSZZXYA7` (testnet)
 
 Operations:
 

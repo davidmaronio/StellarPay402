@@ -66,11 +66,11 @@ async function answer(question: string) {
 
     const data = await res.json();
     text  = data.content?.[0]?.text ?? "No response";
-    model = "claude-haiku-4-5";
+    model = "claude-haiku-4-5-20251001";
   } else {
     // Rich mock — works without an API key for demo / local dev
     text  = generateMock(question);
-    model = "mock-agent-v1 (set ANTHROPIC_API_KEY for real Claude)";
+    model = "mock-agent-v1";
   }
 
   return NextResponse.json({
