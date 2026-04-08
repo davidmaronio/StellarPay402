@@ -84,7 +84,7 @@ const flowData: TimelineItem[] = [
     title: "Attest quality",
     date: "Step 6",
     content:
-      "After a paid call succeeds, the agent leaves a 1–5 star attestation anchored on the EndpointRegistry Soroban contract. Reputation builds automatically, on chain, with no human in the loop.",
+      "After every successful paid call, the proxy automatically anchors a 5-star attestation on the EndpointRegistry Soroban contract — tied to the real payer wallet. Reputation builds with every call, on chain, with no human in the loop.",
     category: "Reputation",
     icon: Star,
     relatedIds: [5, 1],

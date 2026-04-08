@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, endpoints, users, payments, requestLogs } from "@/lib/db";
+import { db, endpoints, users, payments, requestLogs, attestations } from "@/lib/db";
 import { eq, and, gte, sql } from "drizzle-orm";
+import { attestEndpointOnChain } from "@/lib/registry";
 
 // ── Safety guardrail: hard cap on USDC any single payer can spend per hour
 //    across the entire platform. Prevents runaway agents from draining wallets.
@@ -207,6 +208,27 @@ async function handler(req: NextRequest, { params }: { params: Promise<{ userSlu
     paidRequests:  endpoint.paidRequests + 1,
     totalEarned:   endpoint.totalEarned + endpoint.priceUsdc,
   }).where(eq(endpoints.id, endpoint.id));
+
+  // 8b. Auto-attest on every successful 2xx paid call — no human needed.
+  // Fire-and-forget: does not block the response.
+  if (forwardRes.status >= 200 && forwardRes.status < 300 && verify.payer) {
+    Promise.all([
+      attestEndpointOnChain({
+        endpointId:   endpoint.id,
+        rating:       5,
+        comment:      `Automated attestation: paid call succeeded via x402 · latency ${latencyMs}ms`,
+        payerAddress: verify.payer,
+      }).then(txHash =>
+        db.insert(attestations).values({
+          endpointId:   endpoint.id,
+          payerAddress: verify.payer,
+          rating:       5,
+          comment:      `Auto-attested: paid call succeeded · ${latencyMs}ms`,
+          txHash,
+        })
+      ),
+    ]).catch(() => { /* best-effort, never block */ });
+  }
 
   // 9. Return proxied response with receipt.
   // We re-encoded the body via forwardRes.text() so any upstream
