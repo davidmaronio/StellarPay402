@@ -12,6 +12,7 @@ import {
   CircleDollarSign,
 } from "lucide-react";
 import { LampContainer } from "@/components/ui/lamp";
+import { MarketingHeader } from "@/components/ui/marketing-header";
 import RadialOrbitalTimeline, {
   type TimelineItem,
 } from "@/components/ui/radial-orbital-timeline";
@@ -82,37 +83,7 @@ const flowData: TimelineItem[] = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <nav className="border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur">
-        <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center font-bold text-xs text-primary-foreground">
-              S
-            </div>
-            <span className="font-semibold text-sm">StellarPay402</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/marketplace"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Marketplace
-            </Link>
-            <Link
-              href="/login"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register"
-              className="text-sm bg-secondary hover:bg-accent text-secondary-foreground px-4 py-1.5 rounded-lg transition-colors font-semibold border border-border"
-            >
-              Get started
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <MarketingHeader />
 
       {/* Hero with Lamp */}
       <LampContainer className="-mt-14">

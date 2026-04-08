@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession, signOut } from "@/lib/auth-client";
+import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Copy, ExternalLink, Zap, CheckCircle, Bot, Trash2, Anchor, RefreshCw, Pencil, X, LayoutGrid, Activity, Wallet, LogOut } from "lucide-react";
+import { Plus, Copy, ExternalLink, Zap, CheckCircle, Bot, Trash2, Anchor, RefreshCw, Pencil, X, LayoutGrid, Activity, Wallet } from "lucide-react";
+import { AppHeader } from "@/components/ui/app-header";
 
 interface Endpoint {
   id: string;
@@ -115,58 +116,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Nav */}
-      <nav className="border-b border-border sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link href="/" className="flex items-center gap-2 group shrink-0">
-              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground shadow-lg shadow-primary/20">
-                S
-              </div>
-              <span className="font-semibold text-foreground text-sm hidden sm:block group-hover:text-primary transition-colors">
-                StellarPay402
-              </span>
-            </Link>
-            <span className="text-muted-foreground/40 hidden sm:block">/</span>
-            <Link
-              href="/dashboard"
-              className="text-sm text-foreground font-medium truncate hidden sm:block hover:text-primary transition-colors"
-            >
-              Dashboard
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <Link
-              href="/marketplace"
-              className="hidden md:inline-flex text-xs text-muted-foreground hover:text-foreground transition-colors px-3 py-1.5"
-            >
-              Marketplace
-            </Link>
-            {user.slug && (
-              <div className="hidden md:flex items-center gap-1.5 bg-secondary border border-border rounded-full px-3 py-1 text-xs font-mono text-secondary-foreground">
-                <span className="text-muted-foreground">slug:</span>
-                <span className="text-primary">{user.slug}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-2 bg-card border border-border rounded-full pl-1 pr-2 py-1">
-              <div className="w-6 h-6 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center text-[10px] font-bold text-primary-foreground">
-                {(user.name ?? "?").charAt(0).toUpperCase()}
-              </div>
-              <span className="text-xs text-foreground hidden sm:block max-w-[100px] truncate">
-                {user.name}
-              </span>
-              <button
-                onClick={() => signOut().then(() => router.push("/"))}
-                title="Sign out"
-                className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
-              >
-                <LogOut size={12} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <AppHeader />
 
       <main className="max-w-6xl mx-auto px-5 py-10">
         {/* Header */}
