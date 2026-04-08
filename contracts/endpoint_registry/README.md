@@ -1,23 +1,23 @@
 # endpoint_registry
 
-A Soroban smart contract that anchors every endpoint listed on [StellarPay402](https://github.com/davidmaronio/StellarPay402) on-chain and records payer reputation attestations.
+A Soroban smart contract that saves every endpoint listed on [StellarPay402](https://github.com/davidmaronio/StellarPay402) on chain. It also records reputation attestations from payers.
 
-The contract does not hold funds and does not participate in payment settlement — x402 settlements happen off-chain via the facilitator. Its purpose is to provide an immutable provenance trail for the marketplace catalog: even if the hosted marketplace disappears, the set of registered endpoints and their current prices can be reconstructed from Stellar event logs.
+The contract does not hold funds. It does not take part in payment settlement. x402 settlement happens off chain through the facilitator. The job of this contract is to give the marketplace catalog an immutable on chain trail. If the hosted marketplace ever goes away, you can rebuild the full set of registered endpoints from Stellar event logs.
 
-## Contract interface
+## Functions
 
-| Function | Auth | Description |
+| Function | Auth | What it does |
 | --- | --- | --- |
-| `init(admin)` | admin | One-time initialization. Stores the admin address for future administrative use. |
-| `register(endpoint_id, owner, pay_to, price_stroops, name)` | owner | Registers a new endpoint. Fails if `endpoint_id` is already registered or if `price_stroops <= 0`. |
-| `update(endpoint_id, new_price_stroops, active)` | owner | Updates the price and active flag of an existing endpoint. |
-| `attest(endpoint_id, payer, rating, comment)` | payer | Records an on-chain reputation attestation. `rating` must be in `0..=5`. |
-| `get(endpoint_id) -> Option<EndpointRecord>` | — | Read-only accessor. |
-| `count() -> u32` | — | Returns the total number of endpoints ever registered. |
+| `init(admin)` | admin | One time setup. Stores the admin address. |
+| `register(endpoint_id, owner, pay_to, price_stroops, name)` | owner | Registers a new endpoint. Fails if `endpoint_id` already exists or if `price_stroops <= 0`. |
+| `update(endpoint_id, new_price_stroops, active)` | owner | Updates the price and active flag on an existing endpoint. |
+| `attest(endpoint_id, payer, rating, comment)` | payer | Saves an on chain reputation note. `rating` must be `0..=5`. |
+| `get(endpoint_id)` | none | Returns `Option<EndpointRecord>`. Read only. |
+| `count()` | none | Returns the total number of endpoints ever registered. |
 
 ## Events
 
-The contract emits the following events, all keyed by short symbols to stay within Soroban symbol length limits:
+The contract emits short symbol events to stay within Soroban symbol length limits.
 
 | Topic | Data | Emitted by |
 | --- | --- | --- |
@@ -25,31 +25,31 @@ The contract emits the following events, all keyed by short symbols to stay with
 | `("upd", endpoint_id)` | `(new_price_stroops, active)` | `update` |
 | `("att", endpoint_id, payer)` | `(rating, comment)` | `attest` |
 
-An off-chain indexer can rebuild the full marketplace state by replaying `reg` and `upd` events in order.
+An off chain indexer can rebuild the full marketplace state by replaying `reg` and `upd` events in order.
 
 ## Storage
 
-Persistent storage keys:
+Persistent storage:
 
-- `DataKey::Endpoint(BytesN<16>)` → `EndpointRecord`
+- `DataKey::Endpoint(BytesN<16>)` to `EndpointRecord`
 
-Instance storage keys:
+Instance storage:
 
-- `DataKey::Admin` → `Address`
-- `DataKey::EndpointCount` → `u32`
+- `DataKey::Admin` to `Address`
+- `DataKey::EndpointCount` to `u32`
 
-`EndpointRecord` is a `contracttype` struct containing `owner`, `pay_to`, `price_stroops`, `name`, `active`, and `created_ledger`.
+`EndpointRecord` is a `contracttype` struct with `owner`, `pay_to`, `price_stroops`, `name`, `active`, and `created_ledger`.
 
 ## Build
 
-Install the Rust toolchain and the Soroban WASM target, then build:
+Install the Rust toolchain and the Soroban WASM target. Then run:
 
 ```bash
 rustup target add wasm32-unknown-unknown
 cargo build --target wasm32-unknown-unknown --release
 ```
 
-The compiled contract will be at `target/wasm32-unknown-unknown/release/endpoint_registry.wasm`.
+The compiled contract lands at `target/wasm32-unknown-unknown/release/endpoint_registry.wasm`.
 
 ## Test
 
@@ -57,33 +57,35 @@ The compiled contract will be at `target/wasm32-unknown-unknown/release/endpoint
 cargo test
 ```
 
-The test module covers registration, price updates, and attestation emission using `soroban-sdk`'s `mock_all_auths` utilities.
+The test module covers registration, price updates, and attestation emission. It uses `soroban-sdk`'s `mock_all_auths` helper.
 
 ## Deploy to Stellar testnet
 
 ```bash
-soroban contract deploy \
+stellar contract deploy \
   --wasm target/wasm32-unknown-unknown/release/endpoint_registry.wasm \
   --source <your-testnet-key-alias> \
   --network testnet
 ```
 
-Save the returned contract ID, initialize the admin, and set the environment variables in the parent application:
+Save the contract ID it prints. Initialize the admin:
 
 ```bash
-soroban contract invoke \
+stellar contract invoke \
   --id <CONTRACT_ID> \
   --source <your-testnet-key-alias> \
   --network testnet \
   -- init --admin <ADMIN_ADDRESS>
 ```
 
+Set the environment variables in the parent app:
+
 ```env
 REGISTRY_CONTRACT_ID=<CONTRACT_ID>
 REGISTRY_SUBMITTER_SECRET=<secret-key-that-pays-fees>
 ```
 
-Once these variables are set, every new endpoint created through the StellarPay402 dashboard will automatically emit a `reg` event on this contract.
+Once these variables are set, every new endpoint created through the StellarPay402 dashboard automatically emits a `reg` event on this contract.
 
 ## License
 

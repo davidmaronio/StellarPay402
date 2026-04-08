@@ -98,23 +98,23 @@ export default async function EndpointReceiptsPage({
               <span className="text-[10px] uppercase tracking-wider text-neutral-500">Low level</span>
             </div>
             <pre className="overflow-x-auto rounded-md bg-neutral-950 border border-neutral-900 p-4 text-xs text-neutral-300">
-              <code>{`# Step 1 — Probe the endpoint, get x402 requirements
+              <code>{`# Step 1. Probe the endpoint, get x402 requirements
 curl -i ${appUrl}${proxyUrl}
 
-# → HTTP/1.1 402 Payment Required
-# → {"x402Version":2,"accepts":[{
-# →   "scheme":"exact","network":"stellar:testnet",
-# →   "amount":"${stroops}","asset":"<USDC SAC>",
-# →   "payTo":"${endpoint.stellarAddress}"
-# → }]}
+# -> HTTP/1.1 402 Payment Required
+# -> {"x402Version":2,"accepts":[{
+# ->   "scheme":"exact","network":"stellar:testnet",
+# ->   "amount":"${stroops}","asset":"<USDC SAC>",
+# ->   "payTo":"${endpoint.stellarAddress}"
+# -> }]}
 
-# Step 2 — Build an x402 payment with the @x402/stellar SDK,
-# base64-encode the payload, then retry with X-PAYMENT
+# Step 2. Build an x402 payment with the @x402/stellar SDK,
+# base64 encode the payload, then retry with X-PAYMENT
 curl -H "X-PAYMENT: <base64 payload>" ${appUrl}${proxyUrl}
 
-# → HTTP/1.1 200 OK
-# → X-Payment-Receipt: <stellar tx hash>
-# → <upstream API response>`}</code>
+# -> HTTP/1.1 200 OK
+# -> X-Payment-Receipt: <stellar tx hash>
+# -> <upstream API response>`}</code>
             </pre>
           </div>
 
@@ -172,7 +172,7 @@ console.log("Result:",     result);`}</code>
               <span className="text-[10px] uppercase tracking-wider text-emerald-400">Zero code</span>
             </div>
             <p className="text-xs text-neutral-400 mb-2">
-              Add this to your <code className="text-neutral-300">claude_desktop_config.json</code> — no clone, no install:
+              Add this to your <code className="text-neutral-300">claude_desktop_config.json</code>. No clone. No install.
             </p>
             <pre className="overflow-x-auto rounded-md bg-neutral-950 border border-neutral-900 p-4 text-xs text-neutral-300">
               <code>{`{

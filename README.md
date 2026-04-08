@@ -1,56 +1,58 @@
 # StellarPay402
 
-A self-serve marketplace for monetizing HTTP APIs with x402 micropayments on Stellar. Developers register endpoints and set a USDC price per request; AI agents discover them through an MCP server and pay autonomously.
+StellarPay402 is a marketplace for paid HTTP APIs. Developers list an endpoint and set a USDC price. AI agents find it through MCP and pay for it on their own. Payments settle on Stellar testnet using the x402 protocol. Every endpoint also gets saved on chain by a Soroban contract.
 
-Built for [Stellar Hacks: Agents 2026](https://dorahacks.io).
+I built this for [Stellar Hacks: Agents 2026](https://dorahacks.io).
 
-## Problem
+## Why this exists
 
-APIs today are either free (and unsustainable) or behind subscriptions (and inaccessible to short-lived or machine consumers). There is no lightweight, standardized way to charge per individual request, and no way for an autonomous AI agent to discover a paid API and complete payment on its own.
+Most APIs are free or behind a subscription. Free APIs break or rate limit you. Subscription APIs need a human with a credit card, so an AI agent cannot use them.
 
-The HTTP 402 status code was reserved for this purpose decades ago but went unused until the x402 protocol revived it. Even with x402, three gaps remain:
+HTTP 402 was reserved for "Payment Required" decades ago. Nobody used it until the x402 protocol came along. x402 fixes the protocol part, but three problems remain:
 
-1. **Integration effort.** Developers who want to monetize an existing API must write custom middleware to verify payments, forward requests, and settle on-chain.
-2. **Discovery.** There is no public catalog where a client, human or otherwise, can find paid APIs and their prices.
-3. **Autonomy.** AI agents cannot pay for tools they discover at runtime — someone has to write wallet code, sign transactions, and handle payment headers by hand.
+1. **Integration is manual.** If you want to charge for your API, you write your own middleware to verify the payment, forward the request, and settle on chain.
+2. **There is no public catalog.** You can only call an x402 endpoint if someone tells you the URL.
+3. **Agents still cannot pay alone.** Someone has to write wallet code, sign the transaction, and add the payment header by hand.
 
-## Solution
+StellarPay402 solves all three.
 
-StellarPay402 closes all three gaps in a single application.
+## How it works
 
-- **For the API owner**, the dashboard takes a target URL and a USDC price and returns a paid proxy URL. No code changes are required on the owner's side.
-- **For any client**, the public marketplace lists every available endpoint with its price, provider, and recent on-chain receipts.
-- **For AI agents**, the companion MCP server (`@davidmaronio/stellarpay402-mcp`) turns the marketplace into a live tool catalog. The agent calls a tool like any other; the MCP server signs an x402 payment and returns the API response together with a Stellar Expert transaction link.
+StellarPay402 has three kinds of users.
 
-A `register` event is additionally emitted on the `EndpointRegistry` Soroban contract whenever an endpoint is created, so the catalog itself has an on-chain provenance trail independent of the hosted marketplace.
+**API owners.** You go to the dashboard, paste your API URL, set a USDC price, and you get a paid proxy URL back. You change nothing on your side.
 
-## Overview
+**People browsing the marketplace.** You can open `/marketplace` and see every paid API on the platform with the price, the owner, and the recent on chain receipts. Each endpoint page shows three integration paths you can copy and paste: curl, JavaScript, or an MCP config block.
 
-StellarPay402 is composed of four parts that live in one repository:
+**AI agents.** You install the MCP server `@davidmaronio/stellarpay402-mcp` from npm. You add one block to your Claude Desktop config and restart. Every public endpoint in the marketplace shows up as a tool the AI can call. When the AI calls a tool, the MCP server signs the x402 payment for you and returns the API response with a Stellar Expert link to the on chain transaction.
 
-- A **Next.js web application** that hosts the marketplace, dashboard, public catalog, and per-endpoint receipts pages.
-- A **pay-per-call proxy** at `/{userSlug}/{slug}` that returns HTTP 402 with x402 payment requirements to unauthenticated callers and forwards authenticated calls to the target API.
-- A **self-hosted x402 facilitator** at `/api/facilitator/*` that verifies and settles payments on Stellar testnet using `@x402/stellar`.
-- An **MCP server** (`@davidmaronio/stellarpay402-mcp`) that exposes every marketplace endpoint as a tool to any MCP-aware AI assistant, signing x402 payments on the agent's behalf.
-- A **Soroban smart contract** (`EndpointRegistry`) that anchors every endpoint registration on-chain and accepts on-chain reputation attestations from payers.
+The app also saves every new endpoint on chain through a Soroban contract called `EndpointRegistry`. If the website goes down, you can still rebuild the catalog from Stellar event logs.
+
+## What is in the repo
+
+- A Next.js 15 web app for the marketplace, the dashboard, the public catalog, and the receipts page.
+- A pay per call proxy at `/{userSlug}/{slug}` that returns HTTP 402 when nobody has paid yet, then forwards the request to the real API once payment is verified.
+- A self hosted x402 facilitator at `/api/facilitator/*` that runs the verify and settle steps using `@x402/stellar`. The app does not depend on a third party facilitator being up.
+- The MCP server (`@davidmaronio/stellarpay402-mcp`) that lets any MCP client read and pay for marketplace endpoints.
+- A Soroban contract in Rust under `contracts/endpoint_registry/` with `register`, `update`, `attest`, `get`, and `count` functions.
 
 ## Architecture
 
 ```mermaid
 flowchart TB
     subgraph Clients
-        agent["AI agent<br/>(Claude Desktop, Cursor, …)"]
+        agent["AI agent<br/>(Claude Desktop, Cursor, ...)"]
         dev["API owner<br/>(browser)"]
     end
 
     subgraph mcp["@davidmaronio/stellarpay402-mcp (npm)"]
-        mcpSrv["MCP server<br/>• tool discovery<br/>• x402 signer<br/>• session budget"]
+        mcpSrv["MCP server<br/>tool discovery, x402 signer, session budget"]
     end
 
     subgraph app["StellarPay402 (Next.js 15)"]
         proxy["Pay-per-call proxy<br/>/{user}/{slug}"]
         facilitator["x402 facilitator<br/>/api/facilitator/*"]
-        dashboard["Dashboard + Marketplace<br/>/dashboard · /marketplace"]
+        dashboard["Dashboard + Marketplace<br/>/dashboard, /marketplace"]
         api["REST API<br/>/api/endpoints<br/>/api/marketplace"]
         guard["Per-payer hourly<br/>safety cap"]
         bridge["registry.ts<br/>(Soroban bridge)"]
@@ -61,7 +63,7 @@ flowchart TB
         registry["EndpointRegistry<br/>(Soroban contract)"]
     end
 
-    db[("PostgreSQL<br/>endpoints · payments · users")]
+    db[("PostgreSQL<br/>endpoints, payments, users")]
     target["Target API<br/>(any HTTPS URL)"]
 
     agent -- "stdio" --> mcpSrv
@@ -74,11 +76,11 @@ flowchart TB
     proxy --> facilitator
     proxy --> db
     proxy -- "forwarded request" --> target
-    facilitator -- "verify + settle" --> usdc
+    facilitator -- "verify and settle" --> usdc
     bridge -- "register / update" --> registry
 ```
 
-## Repository layout
+## Project layout
 
 ```
 StellarPay402/
@@ -98,18 +100,17 @@ StellarPay402/
 ├── contracts/endpoint_registry/           Soroban smart contract (Rust)
 ├── scripts/test-payment.mjs               End-to-end x402 payment test
 └── docs/
-    ├── PRD.md                             Product requirements
-    └── DEMO_SCRIPT.md                     Demo video script
+    └── PRD.md                             Product requirements
 ```
 
-## Prerequisites
+## What you need
 
 - Node.js 20 or later
-- A PostgreSQL database (Supabase free tier works)
+- A PostgreSQL database. The Supabase free tier works.
 - A Stellar testnet account for the facilitator signer
-- Optional: `soroban-cli` and a Rust toolchain to build and deploy the contract
+- Optional: `stellar-cli` and a Rust toolchain if you want to build and deploy the Soroban contract yourself
 
-## Getting started
+## Running it locally
 
 ```bash
 git clone https://github.com/davidmaronio/StellarPay402
@@ -120,7 +121,7 @@ npx drizzle-kit push
 npm run dev
 ```
 
-Open <http://localhost:3000>, sign in, and create an endpoint from the dashboard. It will immediately appear at `/{userSlug}/{slug}` and in the public marketplace at `/marketplace`.
+Open <http://localhost:3000>. Sign in. Add an endpoint from the dashboard. It shows up at `/{userSlug}/{slug}` and in the public marketplace at `/marketplace` right away.
 
 ## Environment variables
 
@@ -128,52 +129,59 @@ Open <http://localhost:3000>, sign in, and create an endpoint from the dashboard
 | --- | --- | --- |
 | `DATABASE_URL` | yes | PostgreSQL connection string |
 | `BETTER_AUTH_SECRET` | yes | 32+ character secret for session encryption |
-| `BETTER_AUTH_URL` | yes | Public URL of the app (e.g. `http://localhost:3000`) |
-| `NEXT_PUBLIC_APP_URL` | yes | Public URL of the app, exposed to the client for proxy/MCP snippets |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | no | Enables GitHub OAuth login |
-| `FACILITATOR_SECRET_KEY` | yes | Stellar testnet secret key the embedded facilitator uses to sign settlement transactions |
+| `BETTER_AUTH_URL` | yes | Public URL of the app, like `http://localhost:3000` |
+| `NEXT_PUBLIC_APP_URL` | yes | Same URL but exposed to the client for proxy and MCP snippets |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | no | Turns on GitHub OAuth login |
+| `FACILITATOR_SECRET_KEY` | yes | Stellar testnet secret key the facilitator uses to sign settle transactions |
 | `STELLAR_RPC_URL` | no | Defaults to `https://soroban-testnet.stellar.org` |
 | `STELLAR_FACILITATOR_URL` | no | Defaults to the embedded `/api/facilitator` route |
-| `MAX_PAYER_SPEND_PER_HOUR_USDC` | no | Per-payer hourly safety cap (defaults to `1.0`) |
-| `REGISTRY_CONTRACT_ID` | no | Deployed `EndpointRegistry` contract ID. Leave blank to skip on-chain anchoring. |
-| `REGISTRY_SUBMITTER_SECRET` | no | Secret key used to submit registry transactions. Falls back to `FACILITATOR_SECRET_KEY`. |
+| `MAX_PAYER_SPEND_PER_HOUR_USDC` | no | Per-payer hourly safety cap. Default is `1.0` |
+| `REGISTRY_CONTRACT_ID` | no | Soroban contract ID for the registry. Leave blank to skip on chain anchoring |
+| `REGISTRY_SUBMITTER_SECRET` | no | Secret key used to submit registry transactions. Falls back to `FACILITATOR_SECRET_KEY` |
 
-## Core flows
-
-### Pay-per-call proxy
+## How a paid call works
 
 ```
-Caller → GET /:user/:slug
-          ↓  no X-PAYMENT header
-Server → 402 + x402 payment requirements (Stellar testnet, USDC)
+Caller -> GET /:user/:slug
+          (no X-PAYMENT header)
+Server -> 402 + x402 payment requirements (Stellar testnet, USDC)
 
 Caller signs an x402 payment with @x402/stellar
-Caller → GET /:user/:slug  (X-PAYMENT: <base64>)
-          ↓  verify via facilitator → simulate → settle on Stellar
-Server → forward to target URL → return response + X-Payment-Receipt header
+Caller -> GET /:user/:slug  (X-PAYMENT: <base64>)
+          verify via facilitator, simulate, settle on Stellar
+Server -> forward to target URL, return response + X-Payment-Receipt header
 ```
 
-### End-to-end payment test
+## Test the whole thing without writing code
 
-The repository includes a reference client that exercises the full flow against a locally running app:
+The repo ships a small reference client. Run:
 
 ```bash
 node scripts/test-payment.mjs
 ```
 
-The script creates a fresh testnet keypair, funds it via Friendbot, establishes a USDC trustline, swaps XLM for USDC on the testnet DEX, calls the proxy without payment (expects 402), builds an x402 payment with the SDK, calls again with the payment header (expects 200), and prints the Stellar Expert link for the settled transaction.
+This script:
 
-### Safety guardrail
+1. Creates a fresh Stellar testnet wallet.
+2. Funds it through Friendbot.
+3. Sets up a USDC trustline.
+4. Swaps a small amount of XLM for USDC on the testnet DEX.
+5. Calls the proxy without paying. Expects a 402.
+6. Builds and signs an x402 payment with the SDK.
+7. Calls again with the payment header. Expects a 200.
+8. Prints the Stellar Expert link for the settled transaction.
 
-The proxy enforces a hard per-payer spending cap. After each verify, it queries the `payments` table for the caller's cumulative spend in the last hour and rejects the request if the new payment would exceed `MAX_PAYER_SPEND_PER_HOUR_USDC`. This is a server-side control that cannot be bypassed by a misbehaving client.
+## Spending cap
 
-### MCP integration
+The proxy has a built in spending cap. After every successful verify, it checks the `payments` table for that payer address. If accepting the new payment would push them over `MAX_PAYER_SPEND_PER_HOUR_USDC` in the last hour, the proxy rejects the request. The cap runs on the server, so a misbehaving client cannot get around it.
 
-See [`mcp-server/README.md`](./mcp-server/README.md) for installation and configuration details. In short, an AI agent that loads the `@davidmaronio/stellarpay402-mcp` MCP server gains a live tool catalog sourced from the marketplace and can call any endpoint without writing payment code — the MCP server signs the x402 payment on its behalf and enforces a client-side session budget.
+## MCP server
 
-### Soroban EndpointRegistry
+See [`mcp-server/README.md`](./mcp-server/README.md) for the install steps. The short version: you add one block to your Claude Desktop config, restart Claude, and every public endpoint in the marketplace shows up as a tool. When the AI calls a tool, the MCP server signs the x402 payment with its own configured wallet and returns the Stellar Expert link in the answer.
 
-See [`contracts/endpoint_registry/README.md`](./contracts/endpoint_registry/README.md). When `REGISTRY_CONTRACT_ID` is set, every `POST /api/endpoints` call additionally submits a `register` transaction to the contract, emitting an on-chain event containing the owner, payout address, price (in stroops), and endpoint name. The contract also exposes `update` (owner-only) and `attest` (payer reputation) functions.
+## Soroban EndpointRegistry
+
+See [`contracts/endpoint_registry/README.md`](./contracts/endpoint_registry/README.md). When `REGISTRY_CONTRACT_ID` is set, every endpoint creation also submits a `register` transaction to the contract. The contract emits an on chain event with the owner, the payout address, the price in stroops, and the endpoint name. It also has `update` (owner only), `attest` (anyone can leave a reputation note), `get`, and `count`.
 
 ## Tech stack
 
@@ -183,11 +191,11 @@ See [`contracts/endpoint_registry/README.md`](./contracts/endpoint_registry/READ
 | Database | PostgreSQL + Drizzle ORM |
 | Auth | better-auth |
 | Payments | x402 v2 (`@x402/core`, `@x402/stellar`) |
-| Smart contract | Soroban, Rust |
+| Smart contract | Soroban, written in Rust |
 | MCP runtime | `@modelcontextprotocol/sdk` |
-| Deployment | Vercel (web), Supabase (database) |
+| Deployment | Vercel for the web app, Supabase for the database |
 
-## Documentation
+## Docs
 
 - Product requirements: [`docs/PRD.md`](./docs/PRD.md)
 - MCP server: [`mcp-server/README.md`](./mcp-server/README.md)

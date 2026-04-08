@@ -34,7 +34,7 @@ export default function LandingPage() {
         </h1>
 
         <p className="text-lg text-neutral-400 max-w-xl mx-auto mb-10 leading-relaxed">
-          List your API. Set a USDC price. Get a proxy URL that enforces payment on every call — and an MCP tool definition agents can plug straight into their toolbox.
+          List your API. Set a USDC price. Get a proxy URL that enforces payment on every call. You also get an MCP tool definition agents can plug straight into their toolbox.
         </p>
 
         <div className="flex items-center justify-center gap-4 flex-wrap">
@@ -80,10 +80,10 @@ export default function LandingPage() {
             <span className="text-sm font-semibold text-indigo-300">Built for Agent-to-Agent (A2A) payments</span>
           </div>
           <p className="text-sm text-neutral-300 leading-relaxed mb-5">
-            Any AI agent — Claude, GPT, or your own — can browse the marketplace, pick an endpoint, and start calling it with automatic USDC micropayments on Stellar. No wallets to connect manually. No subscriptions. Just HTTP + x402.
+            Any AI agent (Claude, GPT, or your own) can browse the marketplace, pick an endpoint, and call it. Payment in USDC happens automatically on Stellar. No wallets to connect by hand. No subscriptions. Just HTTP and x402.
           </p>
           <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 font-mono text-xs">
-            <div className="text-neutral-600 mb-1">{"# An agent calls a paid endpoint — payment is automatic"}</div>
+            <div className="text-neutral-600 mb-1">{"# An agent calls a paid endpoint. Payment is automatic."}</div>
             <div className="text-green-400">{"curl http://localhost:3000/n4buhayk/weather \\"}</div>
             <div className="text-green-400 pl-4">{"-H 'X-PAYMENT: <base64 x402 payload>'"}</div>
             <div className="text-neutral-500 mt-2">{"→ HTTP 200  X-Payment-Receipt: <stellar tx hash>"}</div>
@@ -97,7 +97,7 @@ export default function LandingPage() {
           {[
             { icon: Store,  title: "Public marketplace",  desc: "Browse all listed APIs. Search, filter, and copy MCP configs with one click." },
             { icon: Bot,    title: "MCP-native",          desc: "Every endpoint ships a tool definition agents can drop straight into Claude or any MCP client." },
-            { icon: Zap,    title: "x402 native",         desc: "HTTP 402 payment required — the open standard for machine-readable API payments." },
+            { icon: Zap,    title: "x402 native",         desc: "HTTP 402 Payment Required. The open standard for machine readable API payments." },
             { icon: Globe,  title: "Zero code",           desc: "No SDK, no middleware. Just a URL. Works with any HTTP API out of the box." },
           ].map(f => (
             <div key={f.title} className="bg-neutral-900 border border-neutral-800 rounded-xl p-5">
@@ -112,7 +112,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-neutral-900">
         <div className="max-w-5xl mx-auto px-5 py-5 flex items-center justify-between text-xs text-neutral-600">
-          <span>StellarPay402 — Stellar Hacks: Agents 2026</span>
+          <span>StellarPay402 for Stellar Hacks: Agents 2026</span>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
             Stellar Testnet

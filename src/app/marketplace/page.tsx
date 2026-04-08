@@ -75,7 +75,7 @@ export default function MarketplacePage() {
           </div>
           <h1 className="text-3xl font-bold tracking-tight mb-2">Browse paid API endpoints</h1>
           <p className="text-neutral-400 text-sm max-w-xl">
-            Every endpoint below is an x402-gated API. AI agents can call these directly — payment in USDC settles on Stellar testnet per request. Copy the MCP config to add any endpoint to your agent.
+            Every endpoint below is an x402 gated API. AI agents can call these directly. Payment in USDC settles on Stellar testnet per request. Copy the MCP config to add any endpoint to your agent.
           </p>
         </div>
 
@@ -178,7 +178,7 @@ export default function MarketplacePage() {
             <h2 className="text-sm font-semibold text-white">Using the marketplace from an AI agent</h2>
           </div>
           <p className="text-xs text-neutral-400 mb-4 leading-relaxed">
-            Add one MCP server to your AI assistant. Every public endpoint above becomes a tool that any MCP-aware client (Claude Desktop, Cursor, Cline) can call. The server signs x402 payments on the agent's behalf and respects a per-session USDC budget. No clone, no install — npx fetches it on first run.
+            Add one MCP server to your AI assistant. Every public endpoint above becomes a tool that any MCP client (Claude Desktop, Cursor, Cline) can call. The server signs x402 payments on the agent's behalf and respects a per session USDC budget. No clone, no install. `npx` fetches it on first run.
           </p>
           <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 font-mono text-xs text-neutral-300 overflow-x-auto">
             <div className="text-neutral-600 mb-1">{"// ~/Library/Application Support/Claude/claude_desktop_config.json"}</div>
