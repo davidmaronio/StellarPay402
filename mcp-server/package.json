@@ -1,6 +1,6 @@
 {
   "name": "@davidmaronio/stellarpay402-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server that bridges any AI assistant to a StellarPay402 marketplace. AI agents discover paid APIs and pay for them autonomously using x402 on Stellar.",
   "type": "module",
   "bin": {
