@@ -147,7 +147,7 @@ export default function LandingPage() {
             How it works
           </p>
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
-            From listing to settlement in five steps
+            From listing to settlement in six steps
           </h2>
           <p className="mt-3 text-sm text-muted-foreground max-w-xl mx-auto">
             Click any node to see what happens at that step. Every node is
