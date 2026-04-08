@@ -128,12 +128,12 @@ Open <http://localhost:3000>, sign in, and create an endpoint from the dashboard
 | --- | --- | --- |
 | `DATABASE_URL` | yes | PostgreSQL connection string |
 | `BETTER_AUTH_SECRET` | yes | 32+ character secret for session encryption |
-| `BETTER_AUTH_URL` | yes | Public URL of the app |
+| `BETTER_AUTH_URL` | yes | Public URL of the app (e.g. `http://localhost:3000`) |
+| `NEXT_PUBLIC_APP_URL` | yes | Public URL of the app, exposed to the client for proxy/MCP snippets |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | no | Enables GitHub OAuth login |
-| `FACILITATOR_PUBLIC_KEY` | yes | Stellar public key the facilitator signs settlements with |
-| `FACILITATOR_SECRET_KEY` | yes | Matching secret key (kept server-side only) |
+| `FACILITATOR_SECRET_KEY` | yes | Stellar testnet secret key the embedded facilitator uses to sign settlement transactions |
 | `STELLAR_RPC_URL` | no | Defaults to `https://soroban-testnet.stellar.org` |
-| `STELLAR_FACILITATOR_URL` | no | Defaults to the embedded facilitator route |
+| `STELLAR_FACILITATOR_URL` | no | Defaults to the embedded `/api/facilitator` route |
 | `MAX_PAYER_SPEND_PER_HOUR_USDC` | no | Per-payer hourly safety cap (defaults to `1.0`) |
 | `REGISTRY_CONTRACT_ID` | no | Deployed `EndpointRegistry` contract ID. Leave blank to skip on-chain anchoring. |
 | `REGISTRY_SUBMITTER_SECRET` | no | Secret key used to submit registry transactions. Falls back to `FACILITATOR_SECRET_KEY`. |

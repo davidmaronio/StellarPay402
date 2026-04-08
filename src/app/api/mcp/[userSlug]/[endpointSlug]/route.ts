@@ -62,8 +62,11 @@ export async function GET(
         },
       },
     },
-    // OpenAI-compatible function definition for agent SDKs
-    openaiFunction: {
+    // Generic JSON-Schema function definition for any agent SDK that
+    // accepts function/tool descriptors (used by most LLM tool-calling
+    // formats today). Drop-in compatible with any client that follows
+    // the JSON-Schema function shape.
+    functionSchema: {
       name:        `${userSlug}_${endpointSlug}`.replace(/-/g, "_"),
       description: `${endpoint.name}${endpoint.description ? ` — ${endpoint.description}` : ""}. Auto-pays $${endpoint.priceUsdc.toFixed(4)} USDC via x402 on Stellar.`,
       parameters: {

@@ -83,10 +83,10 @@ export default function LandingPage() {
             Any AI agent — Claude, GPT, or your own — can browse the marketplace, pick an endpoint, and start calling it with automatic USDC micropayments on Stellar. No wallets to connect manually. No subscriptions. Just HTTP + x402.
           </p>
           <div className="bg-neutral-950 border border-neutral-800 rounded-lg p-4 font-mono text-xs">
-            <div className="text-neutral-600 mb-1">{"# Agent calls a paid API — payment is automatic"}</div>
-            <div className="text-green-400">{"curl https://stellarpay402.app/alice/weather \\"}</div>
-            <div className="text-green-400 pl-4">{"-H 'X-PAYMENT: <stellar-signed-tx>'"}</div>
-            <div className="text-neutral-500 mt-2">{"→ 200 OK  X-Payment-Receipt: abc123..."}</div>
+            <div className="text-neutral-600 mb-1">{"# An agent calls a paid endpoint — payment is automatic"}</div>
+            <div className="text-green-400">{"curl http://localhost:3000/n4buhayk/weather \\"}</div>
+            <div className="text-green-400 pl-4">{"-H 'X-PAYMENT: <base64 x402 payload>'"}</div>
+            <div className="text-neutral-500 mt-2">{"→ HTTP 200  X-Payment-Receipt: <stellar tx hash>"}</div>
           </div>
         </div>
       </section>
