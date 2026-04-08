@@ -248,8 +248,3 @@ a Stellar Expert link.
 | Open-source repo + README | <https://github.com/davidmaronio/StellarPay402> |
 | Frictionless judge experience | One MCP server entry, no clone, no install — `npx -y @davidmaronio/stellarpay402-mcp@latest` |
 
----
-
-## Connection to AgentForge
-
-AgentForge (sister hackathon submission) is an AI orchestrator that consumes paid APIs through autonomous sub-agents. StellarPay402 is the marketplace those sub-agents discover and pay through. The two together form a complete Stellar-native agent payment ecosystem: agents that *spend* (AgentForge) and agents that *earn* (StellarPay402).

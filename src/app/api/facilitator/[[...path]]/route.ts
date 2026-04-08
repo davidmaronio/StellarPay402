@@ -1,6 +1,6 @@
 /**
- * Self-hosted x402 Facilitator — embedded in Next.js
- * Mirrors AgentForge's facilitator.ts but as a Next.js API route.
+ * Self-hosted x402 Facilitator — embedded in Next.js.
+ * Verifies and settles Stellar testnet x402 payments via @x402/stellar.
  *
  * Routes:
  *   GET  /api/facilitator/supported  → list supported networks
