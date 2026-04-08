@@ -2,122 +2,111 @@
 
 ## Overview
 
-StellarPay402 is an **agent-to-agent (A2A) API marketplace** built on the x402 protocol and Stellar testnet. It is the first marketplace where AI agents can discover paid API endpoints, get MCP-compatible tool definitions, and autonomously pay per request in USDC — with every transaction settling on Stellar in seconds.
+StellarPay402 is an agent-to-agent (A2A) API marketplace built on the x402 protocol and Stellar testnet. It is the first marketplace where AI agents discover paid HTTP endpoints, get a working MCP tool definition, and autonomously pay per request in USDC — every transaction settling on Stellar in seconds. Endpoints are anchored on-chain via a Soroban smart contract, payments are settled by a self-hosted x402 facilitator, and a small published npm package (`@davidmaronio/stellarpay402-mcp`) lets any MCP-aware AI client (Claude Desktop, Cursor, Cline) consume the entire marketplace with a single config block and zero code.
 
-Developers list their APIs. Agents find and call them. Payments happen automatically. No subscriptions, no API keys, just HTTP + x402.
+Built for [Stellar Hacks: Agents 2026](https://dorahacks.io).
 
 ---
 
 ## Problem
 
-The current API economy has two failure modes:
-1. **Free APIs** are unsustainable and get rate-limited or killed.
-2. **Subscription APIs** require human sign-up, credit cards, and monthly billing — AI agents cannot participate.
+The current API economy has two failure modes when agents are the consumers:
 
-The x402 protocol solves machine-readable payments, but there's no **marketplace** where agents can *discover* what's available and get a ready-made tool definition to plug in. Every x402 implementation today is point-to-point — you have to already know the URL.
+1. **Free APIs** are unsustainable, get rate-limited, and silently die.
+2. **Subscription APIs** require human sign-up, credit cards, and monthly billing — autonomous agents cannot participate.
+
+The x402 protocol solves machine-readable per-request payments, but three gaps remain in practice:
+
+- **Discovery.** Every x402 implementation today is point-to-point — the caller has to already know the URL.
+- **Integration effort.** A developer wanting to monetize an existing API must write custom middleware to verify payments, forward requests, and settle on-chain.
+- **Autonomy.** AI agents cannot pay for tools they discover at runtime — someone has to hand-write wallet code, sign transactions, and handle payment headers.
 
 ---
 
 ## Solution
 
-A multi-tenant marketplace where:
-1. Developer registers their private API URL + sets a price in USDC
-2. Endpoint appears in the **public marketplace** with pricing and MCP config
-3. Any agent — Claude, GPT, custom — browses the marketplace and copies a one-click MCP config
-4. Agent calls the proxy URL with an x402 Stellar payment header
-5. Payment verified → request forwarded → response returned → USDC settled on Stellar testnet
+A multi-tenant marketplace + an installable MCP server + a Soroban registry that closes all three gaps:
+
+1. A developer registers their HTTPS API URL and a USDC price in the dashboard.
+2. The endpoint instantly appears in the public marketplace AND is anchored on-chain by emitting a `register` event on the `EndpointRegistry` Soroban contract.
+3. Any MCP-aware AI assistant that has the `@davidmaronio/stellarpay402-mcp` server configured discovers the endpoint as a tool automatically.
+4. When the AI calls the tool, the MCP server signs an x402 payment with its configured Stellar wallet and submits it to the proxy.
+5. The proxy verifies and settles via the embedded facilitator, forwards the request to the upstream API, and returns the response to the AI alongside a Stellar Expert link to the on-chain settlement.
+
+The whole loop runs in ~5 seconds with no human in the loop.
 
 ---
 
-## What Makes This Different From Other x402 Projects
+## Target users
 
-| Feature | AgentPay-x402 / AgenFlare | StellarPay402 |
-|---|---|---|
-| Scope | Single developer's proxy | Multi-tenant marketplace |
-| Discovery | None (point-to-point) | Public marketplace with search |
-| Agent integration | Copy URL manually | One-click MCP tool config |
-| Audience | Developers | Both developers AND agents |
-| Network effect | None | Each new listing adds value for all agents |
+- **API developers** monetising existing APIs without writing payment integration code.
+- **AI agents** (Claude Desktop, Cursor, Cline, custom MCP clients) that need to pay autonomously for tools they discover at runtime.
+- **Hackathon judges** evaluating an end-to-end Stellar agent payment experience that they can verify in 60 seconds without cloning anything.
 
 ---
 
-## Target Users
+## Components
 
-- **API developers** — monetize existing APIs with zero code changes
-- **AI agents** — discover and autonomously pay for data/compute services
-- **Hackathon judges** — evaluate a complete A2A payment ecosystem on Stellar
+### 1. Pay-per-call proxy
+**Location:** `/[userSlug]/[...path]`
 
----
+- Unauthenticated request → HTTP 402 + x402 v2 payment requirements (Stellar testnet, USDC)
+- Request with `X-PAYMENT` header → verify with the embedded facilitator → forward to the upstream URL → return the response with `X-Payment-Receipt: <stellar tx hash>`
+- Records the payment + request log in PostgreSQL.
 
-## Core Features (MVP — ship by April 13)
+### 2. Self-hosted x402 facilitator
+**Location:** `/api/facilitator/{verify,settle,supported,health}`
 
-### 1. Public Marketplace (`/marketplace`)
-- Lists all active endpoints across all registered developers
-- Shows: name, description, owner, price per request, paid call count
-- Search/filter by name or description
-- "Copy MCP config" — one click copies ready-to-use MCP server config JSON
-- "Copy proxy URL" for direct HTTP use
+Self-hosted (no third-party dependency). Built on `@x402/core` and `@x402/stellar` with `ExactStellarScheme`. Verifies the signed Soroban transaction, simulates it, settles it on testnet, and returns the resulting tx hash to the proxy.
 
-### 2. MCP Tool Definition API (`/api/mcp/[userSlug]/[slug]`)
-- Returns structured JSON per endpoint:
-  - MCP server config (for claude_desktop_config.json)
-  - OpenAI function definition (for any agent SDK)
-  - x402 payment metadata (proxyUrl, priceUsdc, network, payTo)
-- CORS-open, cacheable, no auth required
+### 3. Per-payer hourly safety cap
+Enforced server-side inside the proxy after every successful verify. Queries the `payments` table for the caller's cumulative spend in the last hour and rejects the request if accepting it would exceed `MAX_PAYER_SPEND_PER_HOUR_USDC` (default `1.0`). A misbehaving client cannot bypass this.
 
-### 3. x402 Proxy Engine (`/[userSlug]/[...path]`)
-- No `X-PAYMENT` header → HTTP 402 + Stellar payment requirements JSON
-- Valid payment header → verify with x402 Stellar facilitator → forward to target → return response
-- Records tx hash as `X-Payment-Receipt` in response headers
-- Stores payment + request log in DB
+### 4. Soroban EndpointRegistry contract
+**Location:** `contracts/endpoint_registry/` (Rust)
+**Deployed:** `CAUM7HCRCTSBSCPUWOZL2AOKO4YM53HJT7S4737C4U7Z6ZFVHHECMJ4I` (testnet)
 
-### 4. Developer Dashboard (authenticated)
-- Register/login via email or GitHub OAuth
-- Create endpoint: name, slug, target URL, price (USDC), Stellar wallet address
-- List endpoints with live request + revenue counters
-- Per-endpoint: copy proxy URL, copy MCP config, view paid request count + earned USDC
+Operations:
+- `init(admin)` — one-time setup
+- `register(id, owner, pay_to, price_stroops, name)` — emits an on-chain event; owner-authenticated
+- `update(id, price_stroops, name)` — owner-only
+- `attest(id, payer, score, comment)` — payer reputation attestation
+- `get(id)` — read a registration
+- `count()` — total endpoints anchored
 
-### 5. Analytics
-- Per-endpoint: total requests, paid requests, revenue earned (USDC)
-- Global stats on marketplace page: total endpoints, total paid calls, total USDC settled
+Registrations are best-effort: if the on-chain call fails, the database row is still created and the dashboard surfaces a `db only` warning badge with a Re-anchor button.
 
----
+### 5. Marketplace web app (Next.js 15, App Router)
+- **`/`** — landing page
+- **`/marketplace`** — public catalog with search, stats bar, per-endpoint cards
+- **`/marketplace/[userSlug]/[slug]`** — per-endpoint detail page with three integration examples (curl, `@x402/stellar` SDK, MCP) and the on-chain payment receipts table
+- **`/dashboard`** — authenticated endpoint manager with create / edit / delete / re-anchor and live counters
+- **`/login`, `/register`** — better-auth (email + GitHub OAuth)
 
-## Out of Scope (not in MVP)
+### 6. `@davidmaronio/stellarpay402-mcp` npm package
+**Location:** `mcp-server/`
+**Published:** https://www.npmjs.com/package/@davidmaronio/stellarpay402-mcp
 
-- Mainnet payments
-- Custom domains / CNAME
-- Rate limiting per payer address
-- Charts / time-series analytics
-- Stripe / fiat on-ramp
-- Team accounts / org workspaces
-- Generic third-party MCP client (we ship our own as `@davidmaronio/stellarpay402-mcp` on npm)
+A standalone MCP server that turns any running marketplace into a live tool catalog for any MCP-aware AI assistant. On startup it auto-discovers every endpoint via `/api/marketplace`, exposes each as a tool, signs x402 payments on the agent's behalf with a configured Stellar testnet secret, and enforces a client-side `MAX_USDC_PER_SESSION` budget. Tool responses include the upstream API body plus the Stellar Expert link to the settled payment.
 
 ---
 
-## Tech Stack
-
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Database | PostgreSQL + Drizzle ORM (Supabase) |
-| Auth | better-auth (email + GitHub OAuth) |
-| Payments | x402 protocol on Stellar testnet |
-| Styling | Tailwind CSS + shadcn/ui |
-| Deployment | Vercel |
-
----
-
-## Data Model
+## Data model
 
 ```
 users
-  id, email, name, slug, stellar_address, created_at
+  id, name, email, slug, stellar_address, image,
+  email_verified, created_at, updated_at
+
+sessions, accounts, verifications
+  (better-auth managed)
 
 endpoints
   id, user_id, name, slug, target_url, price_usdc,
   stellar_address, active, description,
-  total_requests, paid_requests, total_earned, created_at
+  total_requests, paid_requests, total_earned,
+  on_chain_tx_hash,
+  created_at, updated_at
 
 payments
   id, endpoint_id, payer_address, amount_usdc,
@@ -133,104 +122,134 @@ request_logs
 ## Routes
 
 ```
-/                              Landing page (A2A marketplace pitch)
-/marketplace                   Public endpoint marketplace
-/login                         Sign in
-/register                      Create account
-/dashboard                     Endpoint management
-/dashboard/endpoints/new       List a new API
+Public web
+  /                              Landing page
+  /marketplace                   Public catalog
+  /marketplace/[user]/[slug]     Per-endpoint detail + on-chain receipts
+  /login  /register              Auth
 
-/[userSlug]/[...path]          x402 proxy handler
-/api/marketplace               Public list of all active endpoints
-/api/mcp/[userSlug]/[slug]     MCP tool definition JSON (CORS-open)
-/api/endpoints                 CRUD (authenticated)
-/api/auth/[...all]             better-auth
+Authenticated
+  /dashboard                     Endpoint manager
+
+Public APIs (CORS-open)
+  /api/marketplace                          List of all active endpoints
+  /api/marketplace/[user]/[slug]/receipts   Public payment ledger for one endpoint
+  /api/mcp/[user]/[slug]                    MCP tool definition + ready-to-paste config
+
+Authenticated APIs
+  /api/endpoints                 GET (list) / POST (create)
+  /api/endpoints/[id]            PATCH (edit) / DELETE / POST (re-anchor)
+  /api/auth/[...all]             better-auth
+
+x402 + facilitator
+  /[userSlug]/[...path]                       Pay-per-call proxy handler
+  /api/facilitator/verify                     POST — verify x402 payment payload
+  /api/facilitator/settle                     POST — settle a verified payment
+  /api/facilitator/supported                  GET — supported networks/schemes
+  /api/facilitator/health                     GET — liveness check
 ```
 
 ---
 
-## x402 Flow
+## x402 payment flow
 
 ```
-Agent → GET /alice/weather-api
+Caller (MCP server or curl) → GET /n4buhayk/joke
   → No X-PAYMENT header
   → Server returns 402:
       {
-        "x402Version": 1,
+        "x402Version": 2,
         "accepts": [{
           "scheme": "exact",
           "network": "stellar:testnet",
-          "amount": "0.0100000",
-          "asset": "USDC",
-          "payTo": "GALICE...STELLAR_ADDRESS"
+          "amount": "100000",
+          "asset": "<USDC SAC>",
+          "payTo": "GDJK43...BWXUB",
+          "maxTimeoutSeconds": 300,
+          "resource": "<this URL>",
+          "description": "Random Joke"
         }]
       }
 
-Agent pays on Stellar testnet → signs transaction
-  → Retry with X-PAYMENT: <base64 signed payment>
-  → Server verifies with x402 Stellar facilitator
-  → Forwards to https://api.alice.com/weather
-  → Returns response + X-Payment-Receipt: <tx_hash>
+Caller signs an x402 payment via @x402/stellar
+  → Retry with X-PAYMENT: <base64 payload>
+  → Server verifies via /api/facilitator/verify
+  → Per-payer hourly cap checked
+  → Server settles via /api/facilitator/settle
+  → Forwards request to https://official-joke-api.appspot.com/random_joke
+  → Returns JSON body + X-Payment-Receipt: <stellar tx hash>
 ```
 
 ---
 
-## MCP Integration Flow
+## Agent integration via MCP
 
 ```
-Agent → GET /api/mcp/alice/weather
-  → Returns:
-      {
-        "name": "alice_weather",
-        "description": "Real-time weather — $0.01 USDC/request",
-        "mcpServerConfig": {
-          "stellarpay402": {
-            "command": "npx",
-            "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
-            "env": {
-              "STELLAR_SECRET_KEY":   "S...",
-              "MARKETPLACE_URL":      "https://stellarpay402.vercel.app",
-              "MAX_USDC_PER_SESSION": "0.50"
-            }
-          }
-        }
+Add to ~/Library/Application Support/Claude/claude_desktop_config.json:
+
+{
+  "mcpServers": {
+    "stellarpay402": {
+      "command": "npx",
+      "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
+      "env": {
+        "STELLAR_SECRET_KEY":   "S...",
+        "MARKETPLACE_URL":      "https://stellarpay402.vercel.app",
+        "MAX_USDC_PER_SESSION": "0.50"
       }
+    }
+  }
+}
 
-Agent adds config to claude_desktop_config.json
-  → Tool appears in Claude's toolbox
-  → Every call auto-pays via x402 on Stellar
+Restart Claude Desktop. Every public endpoint in the marketplace
+becomes a tool named {userSlug}_{endpointSlug}. Each call autopays
+via x402 on Stellar testnet and returns the upstream response plus
+a Stellar Expert link.
 ```
 
 ---
 
-## Hackathon Alignment
+## Tech stack
 
-| Requirement | How we meet it |
-|---|---|
-| End-to-end agent demo | Register → List → Browse marketplace → Copy MCP → Call → Pay → Revenue |
-| Real Stellar testnet | Every paid request = real Stellar testnet USDC tx with receipt hash |
-| A2A payments (winning pattern) | Marketplace + MCP config = true agent-to-agent discovery and payment |
-| On-chain evidence | tx_hash stored + returned in X-Payment-Receipt header |
-| Differentiator | Only multi-tenant marketplace with MCP tool definitions per endpoint |
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js 15 (App Router, Turbopack) |
+| Database | PostgreSQL + Drizzle ORM (Supabase) |
+| Auth | better-auth (email + GitHub OAuth) |
+| Payments | x402 v2 — `@x402/core`, `@x402/stellar` |
+| Smart contract | Soroban (Rust) |
+| MCP runtime | `@modelcontextprotocol/sdk` |
+| Styling | Tailwind CSS |
+| Deployment | Vercel (web), npm registry (MCP package) |
 
 ---
 
-## Build Order
+## Out of scope (post-hackathon)
 
-| Day | Task |
-|---|---|
-| Day 1 | Scaffold, DB schema, auth, basic dashboard |
-| Day 2 | Proxy handler — 402 response + forwarding |
-| Day 3 | Marketplace page + MCP tool definition API |
-| Day 4 | Stellar x402 integration — verify + settle |
-| Day 5 | Deploy Vercel + Supabase, E2E test |
-| Day 6 | README, demo video, DoraHacks submission |
+- Mainnet payments
+- Custom domains / CNAME for proxy URLs
+- Charts / time-series analytics
+- Stripe / fiat on-ramp
+- Team accounts and org workspaces
+- Endpoint reputation aggregation in the marketplace UI (the contract supports `attest`; the UI does not yet read it)
+- Generic third-party MCP client (we ship our own, `@davidmaronio/stellarpay402-mcp`)
+
+---
+
+## Hackathon alignment
+
+| Judging signal | How we hit it |
+| --- | --- |
+| Live, reproducible end-to-end demo | Claude Desktop call → x402 settle → upstream response → Stellar Expert link, in ~5 seconds |
+| Real Stellar testnet interaction | Every paid call is a real `payment` operation on testnet, visible on Stellar Expert |
+| Hybrid off-chain + on-chain architecture | Heavy logic off-chain in Next.js; Soroban contract anchors every listing on-chain |
+| Safety / spending caps | Server-side per-payer hourly USDC cap enforced in the proxy |
+| On-chain attestations / receipts | `EndpointRegistry` `register` events + per-endpoint receipts page links every payment back to Stellar |
+| Open-source repo + README | <https://github.com/davidmaronio/StellarPay402> |
+| Frictionless judge experience | One MCP server entry, no clone, no install — `npx -y @davidmaronio/stellarpay402-mcp@latest` |
 
 ---
 
 ## Connection to AgentForge
 
-- **AgentForge** = AI orchestrator that *consumes* paid APIs via autonomous agents
-- **StellarPay402** = the marketplace where anyone *lists* paid APIs for agents to discover and pay for
-
-AgentForge agents use StellarPay402 proxy URLs as their data sources. Two submissions, one complete Stellar agent ecosystem.
+AgentForge (sister hackathon submission) is an AI orchestrator that consumes paid APIs through autonomous sub-agents. StellarPay402 is the marketplace those sub-agents discover and pay through. The two together form a complete Stellar-native agent payment ecosystem: agents that *spend* (AgentForge) and agents that *earn* (StellarPay402).
