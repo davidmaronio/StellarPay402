@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 const links = [
   { label: "Marketplace", href: "/marketplace" },
   { label: "How it works", href: "/#how-it-works", anchor: "how-it-works" },
-  { label: "GitHub", href: "https://github.com/davidmaronio/StellarPay402" },
 ] as { label: string; href: string; anchor?: string }[];
 
 function scrollToAnchor(id: string) {
