@@ -140,7 +140,7 @@ export default function RadialOrbitalTimeline({
 
   return (
     <div
-      className="w-full h-screen flex flex-col items-center justify-center bg-slate-950 overflow-hidden"
+      className="w-full h-screen flex flex-col items-center justify-center bg-neutral-950 overflow-hidden"
       ref={containerRef}
       onClick={handleContainerClick}
     >
@@ -208,7 +208,7 @@ export default function RadialOrbitalTimeline({
                       ? "bg-white text-black"
                       : isRelated
                         ? "bg-white/50 text-black"
-                        : "bg-slate-950 text-white"
+                        : "bg-neutral-950 text-white"
                   }
                   border-2
                   ${
@@ -237,7 +237,7 @@ export default function RadialOrbitalTimeline({
                 </div>
 
                 {isExpanded && (
-                  <Card className="absolute top-20 left-1/2 -translate-x-1/2 w-64 bg-slate-950/90 backdrop-blur-lg border-white/30 shadow-xl shadow-white/10 overflow-visible">
+                  <Card className="absolute top-20 left-1/2 -translate-x-1/2 w-64 bg-neutral-950/90 backdrop-blur-lg border-white/30 shadow-xl shadow-white/10 overflow-visible">
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-px h-3 bg-white/50"></div>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-center">
