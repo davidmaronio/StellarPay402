@@ -183,6 +183,86 @@ See [`mcp-server/README.md`](./mcp-server/README.md) for the install steps. The 
 
 See [`contracts/endpoint_registry/README.md`](./contracts/endpoint_registry/README.md). When `REGISTRY_CONTRACT_ID` is set, every endpoint creation also submits a `register` transaction to the contract. The contract emits an on chain event with the owner, the payout address, the price in stroops, and the endpoint name. It also has `update` (owner only), `attest` (anyone can leave a reputation note), `get`, and `count`.
 
+## Which x402 implementation this uses
+
+I want to be explicit about this because there are several packages on npm that look like x402-on-Stellar, and only one set is the canonical implementation.
+
+This project uses:
+
+- `@x402/core` version 2.9.0
+- `@x402/stellar` version 2.9.0
+- `@stellar/stellar-sdk` version 15
+
+These are the same packages the official Stellar developer docs install in the [x402 quickstart guide](https://developers.stellar.org/docs/build/agentic-payments/x402/quickstart-guide). They live in the [`x402-foundation/x402`](https://github.com/x402-foundation/x402) monorepo, which is the modern home of the [`coinbase/x402`](https://github.com/coinbase/x402) project that the hackathon resources page links to. They are maintained by the Coinbase x402 team and are published under the `@x402/*` scope.
+
+The protocol version is x402 v2 with the `exact` scheme. The same scheme the [Built on Stellar x402 Facilitator](https://developers.stellar.org/docs/build/agentic-payments/x402/built-on-stellar) page documents.
+
+There is a separate npm package called `x402-stellar` (no scope) that the resources page also links to. That one is an older single contributor package and is not what the official quickstart uses. I went with the `@x402/*` family because it is the one the docs install, the one the Coinbase team actively maintains, and the one the OpenZeppelin Built on Stellar facilitator is built against.
+
+### How I use the SDK
+
+I do two things differently from the quickstart, both of which the docs explicitly support.
+
+**1. I run my own facilitator instead of pointing at a hosted one.**
+
+The quickstart points at `https://www.x402.org/facilitator` (Coinbase's hosted testnet facilitator) or the [OpenZeppelin Built on Stellar Facilitator](https://channels.openzeppelin.com/x402/testnet). The docs say:
+
+> Self-hosting: If you want to run your own instance of the facilitator instead of using the hosted service, you can deploy the OpenZeppelin Relayer with the x402 Facilitator Plugin directly.
+
+I picked the lighter path. Instead of deploying the OpenZeppelin Relayer separately, I embed `@x402/core/facilitator` and `@x402/stellar/exact/facilitator` directly inside a Next.js API route at `/api/facilitator/{verify,settle,supported,health}`. Same SDK, same protocol, no extra service to deploy. You can find the code in [`src/app/api/facilitator/[[...path]]/route.ts`](./src/app/api/facilitator/%5B%5B...path%5D%5D/route.ts).
+
+**2. I do not use `@x402/express` middleware.**
+
+The quickstart uses `@x402/express` and `paymentMiddlewareFromConfig` to wrap an Express route. This project is Next.js App Router, not Express, and the proxy needs to do extra work the middleware would hide:
+
+- Forward the request to an arbitrary upstream URL (per endpoint)
+- Run a per payer hourly USDC spending cap
+- Anchor the listing on chain through the Soroban registry
+- Log the payment to PostgreSQL and to the public receipts page
+
+So the proxy uses the lower level building blocks from `@x402/core` and `@x402/stellar` directly, the same primitives `@x402/express` would use under the hood.
+
+### Proof it works end to end
+
+Run `node scripts/test-payment.mjs` against a local server. The script:
+
+1. Generates a fresh Stellar testnet wallet.
+2. Funds it via Friendbot.
+3. Sets up a USDC trustline.
+4. Swaps a small amount of XLM for USDC on the testnet DEX.
+5. Calls a marketplace proxy URL without payment. Server returns HTTP 402 with x402 v2 payment requirements.
+6. Builds and signs an x402 payment payload with `@x402/stellar`'s `ExactStellarScheme` client.
+7. Calls again with the `X-PAYMENT` header. The embedded facilitator verifies, settles on testnet, and the proxy forwards the request.
+8. Prints the Stellar Expert link to the real settled transaction.
+
+Every paid call leaves a public on chain receipt visible at `/marketplace/{user}/{slug}`.
+
+### Stellar packages this project uses
+
+For Stellar specifically, this project pulls in:
+
+| Package | Version | What it does here |
+| --- | --- | --- |
+| `@stellar/stellar-sdk` | `^15.0.1` | Build, sign, and submit Stellar transactions. The proxy uses it to talk to Horizon for the Soroban contract calls. |
+| `@x402/stellar` | `^2.9.0` | The Stellar half of the x402 protocol. `ExactStellarScheme` for the facilitator side and the client side, `createEd25519Signer` for the test client. |
+| `@x402/core` | `^2.9.0` | The protocol core. I use `x402Facilitator` from `@x402/core/facilitator` to back the embedded `/api/facilitator` route. |
+
+The Soroban smart contract uses the Rust `soroban-sdk` (version 21) on the contract side, which is unrelated to the npm packages above. See `contracts/endpoint_registry/Cargo.toml`.
+
+This project does not use MPP, the OpenZeppelin Relayer, the Stellar Wallets Kit, the Stellar CLI inside the app (it is only used at deploy time), or any of the SEP anchor packages. Pure x402 plus a small Soroban contract.
+
+### MCP packages this project uses
+
+For the MCP server I publish on npm (`@davidmaronio/stellarpay402-mcp`), there is exactly one MCP dependency:
+
+| Package | Version | What it does here |
+| --- | --- | --- |
+| `@modelcontextprotocol/sdk` | `^1.0.4` | The official MCP SDK from the Model Context Protocol team. The server uses it for the stdio transport, the `tools/list` and `tools/call` request handlers, and the JSON-RPC plumbing that lets Claude Desktop, Cursor, and Cline talk to the server. |
+
+The MCP server also depends on `@stellar/stellar-sdk`, `@x402/core`, and `@x402/stellar`. Same packages as the main app. It uses them to sign x402 payments on the agent's behalf when a tool is called.
+
+That is the entire MCP stack. No higher level wrapper, no MCP framework, no Anthropic specific code. The server works with any client that speaks the MCP spec.
+
 ## Tech stack
 
 | Layer | Choice |
