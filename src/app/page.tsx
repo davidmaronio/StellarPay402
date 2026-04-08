@@ -10,6 +10,7 @@ import {
   Bot,
   Wallet,
   CircleDollarSign,
+  Star,
 } from "lucide-react";
 import { LampContainer } from "@/components/ui/lamp";
 import { MarketingHeader } from "@/components/ui/marketing-header";
@@ -74,9 +75,21 @@ const flowData: TimelineItem[] = [
       "USDC moves on Stellar testnet in seconds. The proxy returns the upstream API response with a Stellar Expert link. The payment shows up on the public receipts page.",
     category: "Settlement",
     icon: CircleDollarSign,
-    relatedIds: [4, 1],
+    relatedIds: [4, 6],
     status: "completed",
     energy: 100,
+  },
+  {
+    id: 6,
+    title: "Attest quality",
+    date: "Step 6",
+    content:
+      "After a paid call succeeds, the agent leaves a 1–5 star attestation anchored on the EndpointRegistry Soroban contract. Reputation builds automatically, on chain, with no human in the loop.",
+    category: "Reputation",
+    icon: Star,
+    relatedIds: [5, 1],
+    status: "completed",
+    energy: 90,
   },
 ];
 
@@ -95,19 +108,19 @@ export default function LandingPage() {
         >
           <div className="inline-flex items-center gap-2 bg-secondary border border-border rounded-full px-3 py-1 text-xs text-secondary-foreground font-mono mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block animate-pulse" />
-            x402 protocol on Stellar testnet
+            Agent-to-agent · x402 · Stellar testnet
           </div>
 
           <h1 className="py-2 text-center text-4xl font-semibold tracking-tight text-foreground md:text-6xl">
-            Where AI agents
+            One agent sells.
             <br />
-            <span className="text-primary">pay for APIs</span>
+            <span className="text-primary">Another agent pays.</span>
           </h1>
 
           <p className="mt-5 max-w-xl text-center text-sm md:text-base text-foreground/85 leading-relaxed">
-            List a paid HTTP API in one screen. Any MCP client signs x402
-            payments and calls it. USDC settles on Stellar in five seconds.
-            Every endpoint is anchored on chain by a Soroban contract.
+            The agent-to-agent API marketplace on Stellar. List any HTTP endpoint and set a USDC price.
+            AI agents discover it via MCP, sign an x402 payment autonomously, and get the response —
+            zero humans in the loop. Every call settles on chain in seconds.
           </p>
 
           <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">

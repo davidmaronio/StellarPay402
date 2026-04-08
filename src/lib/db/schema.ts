@@ -78,6 +78,16 @@ export const payments = pgTable("payments", {
   settledAt:    timestamp("settled_at").notNull().defaultNow(),
 });
 
+export const attestations = pgTable("attestations", {
+  id:           uuid("id").primaryKey().defaultRandom(),
+  endpointId:   uuid("endpoint_id").notNull().references(() => endpoints.id, { onDelete: "cascade" }),
+  payerAddress: text("payer_address"),
+  rating:       integer("rating").notNull(),  // 1–5
+  comment:      text("comment"),
+  txHash:       text("tx_hash"),              // on-chain attest() tx if available
+  createdAt:    timestamp("created_at").notNull().defaultNow(),
+});
+
 export const requestLogs = pgTable("request_logs", {
   id:             uuid("id").primaryKey().defaultRandom(),
   endpointId:     uuid("endpoint_id").notNull().references(() => endpoints.id, { onDelete: "cascade" }),

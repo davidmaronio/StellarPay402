@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { db, endpoints, payments, users } from "@/lib/db";
-import { eq, and, desc } from "drizzle-orm";
+import { db, endpoints, payments, users, attestations } from "@/lib/db";
+import { eq, and, desc, avg, count } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Activity, Wallet, BarChart3, ExternalLink } from "lucide-react";
+import { ArrowLeft, Activity, Wallet, BarChart3, ExternalLink, Star } from "lucide-react";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Steps, type Step } from "@/components/ui/steps";
 import { MarketingHeader } from "@/components/ui/marketing-header";
+import { AttestForm } from "@/components/ui/attest-form";
 
 export const dynamic = "force-dynamic";
 
@@ -47,6 +48,21 @@ export default async function EndpointReceiptsPage({
     .where(eq(payments.endpointId, endpoint.id))
     .orderBy(desc(payments.settledAt))
     .limit(50);
+
+  const [ratingRow] = await db
+    .select({ avg: avg(attestations.rating), total: count(attestations.id) })
+    .from(attestations)
+    .where(eq(attestations.endpointId, endpoint.id));
+
+  const recentAttestations = await db
+    .select()
+    .from(attestations)
+    .where(eq(attestations.endpointId, endpoint.id))
+    .orderBy(desc(attestations.createdAt))
+    .limit(20);
+
+  const avgRating  = ratingRow?.avg ? parseFloat(ratingRow.avg) : null;
+  const ratingCount = ratingRow?.total ?? 0;
 
   const proxyUrl = `/${userSlug}/${slug}`;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -199,7 +215,7 @@ console.log("Result:",     result);`}
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
           <Stat
             label="Total requests"
             value={endpoint.totalRequests.toString()}
@@ -215,6 +231,12 @@ console.log("Result:",     result);`}
             value={`$${endpoint.totalEarned.toFixed(4)}`}
             suffix="USDC"
             icon={<Wallet size={14} />}
+          />
+          <Stat
+            label="Avg rating"
+            value={avgRating !== null ? avgRating.toFixed(1) : "—"}
+            suffix={ratingCount > 0 ? `${ratingCount} reviews` : undefined}
+            icon={<Star size={14} />}
           />
         </div>
 
@@ -294,6 +316,69 @@ console.log("Result:",     result);`}
               </table>
             </div>
           )}
+        </div>
+
+        {/* Attestations */}
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recent reviews */}
+          <div>
+            <h2 className="text-xl font-semibold text-foreground tracking-tight mb-1">
+              On-chain attestations
+            </h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Callers rate this endpoint after paying. Anchored to Stellar via Soroban.
+            </p>
+            {recentAttestations.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border bg-card/40 p-10 text-center">
+                <Star size={20} className="text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No attestations yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recentAttestations.map((a) => (
+                  <div key={a.id} className="rounded-xl border border-border bg-card px-4 py-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm text-primary font-mono tracking-wider">
+                        {"★".repeat(a.rating)}
+                        <span className="text-muted-foreground/40">{"★".repeat(5 - a.rating)}</span>
+                      </span>
+                      {a.txHash ? (
+                        <a
+                          href={`https://stellar.expert/explorer/testnet/tx/${a.txHash}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 font-mono text-[10px] text-primary hover:underline"
+                        >
+                          on-chain <ExternalLink size={9} />
+                        </a>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground/50">off-chain</span>
+                      )}
+                    </div>
+                    {a.comment && (
+                      <p className="text-xs text-foreground/80 leading-relaxed">{a.comment}</p>
+                    )}
+                    {a.payerAddress && (
+                      <p className="text-[10px] text-muted-foreground font-mono mt-1">
+                        {shortenAddress(a.payerAddress)}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Submit attestation */}
+          <div>
+            <h2 className="text-xl font-semibold text-foreground tracking-tight mb-1">
+              Rate this endpoint
+            </h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Used it? Leave a score. Agents use ratings to pick the best tool.
+            </p>
+            <AttestForm userSlug={userSlug} slug={slug} />
+          </div>
         </div>
       </main>
     </div>

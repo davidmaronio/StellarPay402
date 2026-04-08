@@ -37,6 +37,57 @@ function uuidToBytes16(uuid: string): Buffer {
  * Note: this is a best-effort call. We catch all errors so endpoint
  * creation never fails because of registry issues.
  */
+export type AttestArgs = {
+  endpointId: string; // UUID
+  rating:     number; // 1–5
+  comment:    string;
+};
+
+/**
+ * Submits an `attest` call to the EndpointRegistry contract.
+ * Uses the submitter key as the on-chain "payer" (signing authority).
+ * Returns the tx hash on success, or null if registry is not configured.
+ */
+export async function attestEndpointOnChain(args: AttestArgs): Promise<string | null> {
+  if (!REGISTRY_ID || !REGISTRY_SECRET) return null;
+  try {
+    const submitter = Keypair.fromSecret(REGISTRY_SECRET);
+    const server    = new rpc.Server(RPC_URL);
+    const account   = await server.getAccount(submitter.publicKey());
+    const contract  = new Contract(REGISTRY_ID);
+    const idBytes   = uuidToBytes16(args.endpointId);
+
+    const op = contract.call(
+      "attest",
+      nativeToScVal(idBytes,               { type: "bytes" }),
+      new Address(submitter.publicKey()).toScVal(),
+      nativeToScVal(args.rating,           { type: "u32" }),
+      xdr.ScVal.scvString(args.comment),
+    );
+
+    const built = new TransactionBuilder(account, {
+      fee: BASE_FEE,
+      networkPassphrase: NETWORK_PASSPHRASE,
+    })
+      .addOperation(op)
+      .setTimeout(60)
+      .build();
+
+    const prepared = await server.prepareTransaction(built);
+    prepared.sign(submitter);
+    const sendRes = await server.sendTransaction(prepared);
+    if (sendRes.status !== "PENDING") {
+      console.warn("[registry] attest not pending:", sendRes);
+      return null;
+    }
+    console.log("[registry] attested on-chain, tx:", sendRes.hash);
+    return sendRes.hash;
+  } catch (err) {
+    console.warn("[registry] on-chain attest failed (non-fatal):", err);
+    return null;
+  }
+}
+
 export async function registerEndpointOnChain(args: RegisterArgs): Promise<string | null> {
   if (!REGISTRY_ID || !REGISTRY_SECRET) {
     console.log("[registry] not configured — skipping on-chain registration");
