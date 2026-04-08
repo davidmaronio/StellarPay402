@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * stellarpay402-mcp
- * ------------------
+ * @davidmaronio/stellarpay402-mcp
+ * -------------------------------
  * An MCP server that bridges any AI assistant (Claude Desktop, Cursor, etc.)
  * to the StellarPay402 marketplace. The AI discovers paid APIs as MCP tools
  * and autonomously pays for them in USDC on Stellar testnet — no human in the loop.
@@ -11,7 +11,7 @@
  *     "mcpServers": {
  *       "stellarpay402": {
  *         "command": "npx",
- *         "args": ["-y", "stellarpay402-mcp"],
+ *         "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
  *         "env": {
  *           "STELLAR_SECRET_KEY": "S...",
  *           "MARKETPLACE_URL": "http://localhost:3000",

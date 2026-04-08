@@ -1,16 +1,16 @@
-# stellarpay402-mcp
+# @davidmaronio/stellarpay402-mcp
 
 A Model Context Protocol (MCP) server that exposes every endpoint in a running StellarPay402 marketplace as a tool to any MCP-aware AI assistant. When the assistant invokes a tool, the server signs an x402 payment with its configured Stellar testnet key, submits it to the proxy, and returns the API response to the model.
 
 ## Installation
 
-The package is published to npm and can be run with `npx`:
+The package is published on the public npm registry. There is nothing to install — `npx` fetches it on first run:
 
 ```bash
-npx stellarpay402-mcp
+npx -y @davidmaronio/stellarpay402-mcp@latest
 ```
 
-It can also be cloned from the parent [StellarPay402](https://github.com/davidmaronio/StellarPay402) repository and run directly:
+For development you can also clone the parent [StellarPay402](https://github.com/davidmaronio/StellarPay402) repository and run the source directly:
 
 ```bash
 cd StellarPay402/mcp-server
@@ -45,7 +45,7 @@ Add the following block to `~/Library/Application Support/Claude/claude_desktop_
   "mcpServers": {
     "stellarpay402": {
       "command": "npx",
-      "args": ["-y", "stellarpay402-mcp"],
+      "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
       "env": {
         "STELLAR_SECRET_KEY": "S...",
         "MARKETPLACE_URL": "https://stellarpay402.vercel.app",

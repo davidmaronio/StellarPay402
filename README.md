@@ -20,7 +20,7 @@ StellarPay402 closes all three gaps in a single application.
 
 - **For the API owner**, the dashboard takes a target URL and a USDC price and returns a paid proxy URL. No code changes are required on the owner's side.
 - **For any client**, the public marketplace lists every available endpoint with its price, provider, and recent on-chain receipts.
-- **For AI agents**, the companion MCP server (`stellarpay402-mcp`) turns the marketplace into a live tool catalog. The agent calls a tool like any other; the MCP server signs an x402 payment and returns the API response together with a Stellar Expert transaction link.
+- **For AI agents**, the companion MCP server (`@davidmaronio/stellarpay402-mcp`) turns the marketplace into a live tool catalog. The agent calls a tool like any other; the MCP server signs an x402 payment and returns the API response together with a Stellar Expert transaction link.
 
 A `register` event is additionally emitted on the `EndpointRegistry` Soroban contract whenever an endpoint is created, so the catalog itself has an on-chain provenance trail independent of the hosted marketplace.
 
@@ -31,7 +31,7 @@ StellarPay402 is composed of four parts that live in one repository:
 - A **Next.js web application** that hosts the marketplace, dashboard, public catalog, and per-endpoint receipts pages.
 - A **pay-per-call proxy** at `/{userSlug}/{slug}` that returns HTTP 402 with x402 payment requirements to unauthenticated callers and forwards authenticated calls to the target API.
 - A **self-hosted x402 facilitator** at `/api/facilitator/*` that verifies and settles payments on Stellar testnet using `@x402/stellar`.
-- An **MCP server** (`stellarpay402-mcp`) that exposes every marketplace endpoint as a tool to any MCP-aware AI assistant, signing x402 payments on the agent's behalf.
+- An **MCP server** (`@davidmaronio/stellarpay402-mcp`) that exposes every marketplace endpoint as a tool to any MCP-aware AI assistant, signing x402 payments on the agent's behalf.
 - A **Soroban smart contract** (`EndpointRegistry`) that anchors every endpoint registration on-chain and accepts on-chain reputation attestations from payers.
 
 ## Architecture
@@ -43,7 +43,7 @@ flowchart TB
         dev["API owner<br/>(browser)"]
     end
 
-    subgraph mcp["stellarpay402-mcp (npm)"]
+    subgraph mcp["@davidmaronio/stellarpay402-mcp (npm)"]
         mcpSrv["MCP server<br/>• tool discovery<br/>• x402 signer<br/>• session budget"]
     end
 
@@ -94,7 +94,7 @@ StellarPay402/
 │   ├── auth.ts                            better-auth configuration
 │   ├── db/                                Drizzle schema + Postgres client
 │   └── registry.ts                        Soroban EndpointRegistry bridge
-├── mcp-server/                            stellarpay402-mcp npm package
+├── mcp-server/                            @davidmaronio/stellarpay402-mcp npm package
 ├── contracts/endpoint_registry/           Soroban smart contract (Rust)
 ├── scripts/test-payment.mjs               End-to-end x402 payment test
 └── docs/
@@ -169,7 +169,7 @@ The proxy enforces a hard per-payer spending cap. After each verify, it queries 
 
 ### MCP integration
 
-See [`mcp-server/README.md`](./mcp-server/README.md) for installation and configuration details. In short, an AI agent that loads the `stellarpay402-mcp` MCP server gains a live tool catalog sourced from the marketplace and can call any endpoint without writing payment code — the MCP server signs the x402 payment on its behalf and enforces a client-side session budget.
+See [`mcp-server/README.md`](./mcp-server/README.md) for installation and configuration details. In short, an AI agent that loads the `@davidmaronio/stellarpay402-mcp` MCP server gains a live tool catalog sourced from the marketplace and can call any endpoint without writing payment code — the MCP server signs the x402 payment on its behalf and enforces a client-side session budget.
 
 ### Soroban EndpointRegistry
 

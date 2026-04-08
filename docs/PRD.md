@@ -91,7 +91,7 @@ A multi-tenant marketplace where:
 - Charts / time-series analytics
 - Stripe / fiat on-ramp
 - Team accounts / org workspaces
-- Actual x402-mcp-client npm package (stub config for demo)
+- Generic third-party MCP client (we ship our own as `@davidmaronio/stellarpay402-mcp` on npm)
 
 ---
 
@@ -184,10 +184,14 @@ Agent → GET /api/mcp/alice/weather
         "name": "alice_weather",
         "description": "Real-time weather — $0.01 USDC/request",
         "mcpServerConfig": {
-          "weather-api": {
+          "stellarpay402": {
             "command": "npx",
-            "args": ["-y", "x402-mcp-client", "https://stellarpay402.app/alice/weather"],
-            "env": { "STELLAR_SECRET_KEY": "S..." }
+            "args": ["-y", "@davidmaronio/stellarpay402-mcp@latest"],
+            "env": {
+              "STELLAR_SECRET_KEY":   "S...",
+              "MARKETPLACE_URL":      "https://stellarpay402.vercel.app",
+              "MAX_USDC_PER_SESSION": "0.50"
+            }
           }
         }
       }
