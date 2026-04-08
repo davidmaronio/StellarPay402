@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Globe, Wallet, Plus } from "lucide-react";
+import { AppHeader } from "@/components/ui/app-header";
 
 export default function NewEndpointPage() {
   const router = useRouter();
@@ -44,26 +45,16 @@ export default function NewEndpointPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <nav className="border-b border-border sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-3xl mx-auto px-5 h-16 flex items-center justify-between gap-4">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft size={14} />
-            Back to dashboard
-          </Link>
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center font-bold text-xs text-primary-foreground">
-              S
-            </div>
-            <span className="font-semibold text-foreground text-sm">StellarPay402</span>
-          </div>
-        </div>
-      </nav>
+      <AppHeader />
 
       <main className="max-w-3xl mx-auto px-5 py-10">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <ArrowLeft size={14} />
+          Back to dashboard
+        </Link>
         {/* Header */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 bg-secondary border border-border rounded-full px-3 py-1 text-xs text-secondary-foreground font-mono mb-3">

@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Copy, CheckCircle, Zap, Search, Bot } from "lucide-react";
 import { CodeBlock } from "@/components/ui/code-block";
+import { MarketingHeader } from "@/components/ui/marketing-header";
+import { AppHeader } from "@/components/ui/app-header";
+import { useSession } from "@/lib/auth-client";
 
 interface MarketplaceEndpoint {
   id: string;
@@ -23,6 +26,7 @@ export default function MarketplacePage() {
   const [search, setSearch]       = useState("");
   const [copied, setCopied]       = useState<string | null>(null);
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const { data: session } = useSession();
 
   useEffect(() => {
     fetch("/api/marketplace")
@@ -48,25 +52,7 @@ export default function MarketplacePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <nav className="border-b border-border sticky top-0 z-50 bg-background/80 backdrop-blur">
-        <div className="max-w-5xl mx-auto px-5 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center font-bold text-xs text-primary-foreground">S</div>
-              <span className="font-semibold text-sm">StellarPay402</span>
-            </Link>
-            <span className="text-muted-foreground/50">/</span>
-            <span className="text-sm text-muted-foreground">Marketplace</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign in</Link>
-            <Link href="/register" className="text-sm bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-1.5 rounded-lg transition-colors font-medium">
-              List your API
-            </Link>
-          </div>
-        </div>
-      </nav>
+      {session ? <AppHeader /> : <MarketingHeader />}
 
       <main className="max-w-5xl mx-auto px-5 py-10">
         {/* Header */}

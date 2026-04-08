@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Activity, Wallet, BarChart3, ExternalLink } from "lucide-react";
 import { CodeBlock } from "@/components/ui/code-block";
 import { Steps, type Step } from "@/components/ui/steps";
+import { MarketingHeader } from "@/components/ui/marketing-header";
 
 export const dynamic = "force-dynamic";
 
@@ -150,28 +151,16 @@ console.log("Result:",     result);`}
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Nav */}
-      <nav className="border-b border-border sticky top-0 z-40 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground shadow-lg shadow-primary/20">
-              S
-            </div>
-            <span className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors">
-              StellarPay402
-            </span>
-          </Link>
-          <Link
-            href="/marketplace"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft size={14} />
-            Back to marketplace
-          </Link>
-        </div>
-      </nav>
+      <MarketingHeader />
 
       <main className="mx-auto max-w-5xl px-5 py-10">
+        <Link
+          href="/marketplace"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <ArrowLeft size={14} />
+          Back to marketplace
+        </Link>
         {/* Hero */}
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between mb-10">
           <div className="min-w-0 flex-1">
