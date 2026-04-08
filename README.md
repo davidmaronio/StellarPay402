@@ -4,9 +4,9 @@ StellarPay402 is a marketplace for paid HTTP APIs. Developers list an endpoint a
 
 I built this for [Stellar Hacks: Agents 2026](https://dorahacks.io).
 
-**Live demo:** https://stellar-pay402.vercel.app
-**npm package:** https://www.npmjs.com/package/@davidmaronio/stellarpay402-mcp
-**Soroban contract (testnet):** `CAUM7HCRCTSBSCPUWOZL2AOKO4YM53HJT7S4737C4U7Z6ZFVHHECMJ4I`
+- **Live demo:** <https://stellar-pay402.vercel.app>
+- **npm package:** <https://www.npmjs.com/package/@davidmaronio/stellarpay402-mcp>
+- **Soroban contract (testnet):** `CAUM7HCRCTSBSCPUWOZL2AOKO4YM53HJT7S4737C4U7Z6ZFVHHECMJ4I`
 
 ## Why this exists
 
