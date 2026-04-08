@@ -83,6 +83,7 @@ export default function DashboardPage() {
       stellarAddress: form.get("stellarAddress"),
       description:    form.get("description"),
       active:         form.get("active") === "on",
+      isAiPowered:    form.get("isAiPowered") === "on",
     };
     const res = await fetch(`/api/endpoints/${editing.id}`, {
       method:  "PATCH",
@@ -449,6 +450,20 @@ export default function DashboardPage() {
                   className="w-full bg-muted border border-border rounded-lg px-3 py-2.5 text-sm text-foreground font-mono outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
+
+              <label className="flex items-center gap-3 cursor-pointer">
+                <div className="relative">
+                  <input type="checkbox" name="isAiPowered" defaultChecked={editing.isAiPowered} className="sr-only peer" />
+                  <div className="w-10 h-6 bg-muted border border-border rounded-full peer-checked:bg-primary transition-colors" />
+                  <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                    <Bot size={13} className="text-primary" /> AI-powered endpoint
+                  </div>
+                  <p className="text-xs text-muted-foreground">Shows "AI Agent" badge in the marketplace</p>
+                </div>
+              </label>
 
               <div className="flex items-center gap-2 pt-3">
                 <button

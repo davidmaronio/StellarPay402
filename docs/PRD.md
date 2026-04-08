@@ -23,21 +23,22 @@ The x402 protocol solves machine readable per request payments. Three gaps still
 
 StellarPay402 is one app that closes all three gaps. It has a multi tenant marketplace, a self hosted x402 facilitator, an installable MCP server, and a Soroban registry contract.
 
-The flow:
+The A2A flow:
 
-1. A developer registers an HTTPS API URL and a USDC price in the dashboard.
-2. The endpoint shows up in the public marketplace right away. The app also emits a `register` event on the `EndpointRegistry` Soroban contract, which anchors the listing on chain.
-3. Any MCP client that has `@davidmaronio/stellarpay402-mcp` configured discovers the endpoint as a tool automatically.
-4. When the AI calls the tool, the MCP server signs an x402 payment with its configured Stellar wallet and submits it to the proxy.
-5. The proxy verifies and settles the payment through the embedded facilitator. It forwards the request to the upstream API and returns the response to the AI with a Stellar Expert link to the on chain settlement.
+1. A developer (or AI agent) registers an HTTPS API URL and a USDC price. Mark it "AI-powered" if it is backed by a model. A `register` event is emitted on the Soroban `EndpointRegistry` — the listing is anchored on chain immediately.
+2. The endpoint appears in the public marketplace with an "AI Agent" badge and "on-chain" badge visible on the card.
+3. Any MCP client with `@davidmaronio/stellarpay402-mcp` discovers the endpoint as a callable tool automatically — no code, no restart required.
+4. The buyer AI calls the tool. The MCP server signs an x402 payment with its Stellar wallet and submits to the proxy.
+5. The proxy verifies + settles via the embedded facilitator. USDC moves on Stellar testnet. The proxy forwards to the target URL (which may itself be an AI agent) and returns the response with a Stellar Expert receipt link.
+6. After the paid call, the caller submits a 1–5 star attestation. The rating is saved to the DB and an `attest()` tx is submitted to the Soroban contract — permanently anchoring the caller's real Stellar address and score on chain.
 
-The whole loop runs in about 5 seconds with no human in the loop.
+The full loop runs in about 5–7 seconds with no human in the loop at any step.
 
 ## Target users
 
-- **API owners** who want to monetize an existing API per request without writing payment integration code. You register an endpoint in the dashboard. You get a paid proxy URL plus an on chain registration on Soroban. No SDK install. No middleware.
-- **Human consumers** (developers, scripts, integrators) browsing the public marketplace to find paid APIs. Every endpoint page shows three integration paths you can copy and paste: raw curl, the `@x402/stellar` SDK, and the MCP server config.
-- **AI agents** (Claude Desktop, Cursor, Cline, any MCP client) that need to pay for tools they discover at runtime. The agent does this through `@davidmaronio/stellarpay402-mcp`. No code, no manual signing, no human in the loop.
+- **API owners (seller agents)** who want to monetize an existing API per request without writing payment integration code. Mark it "AI-powered" if the endpoint is backed by a model. You get a paid proxy URL plus an on-chain registration on Soroban, plus automatic reputation via attestations.
+- **Human consumers** (developers, scripts, integrators) browsing the public marketplace to find paid APIs. Every endpoint page shows three integration paths: raw curl, the `@x402/stellar` SDK, and the MCP config block.
+- **AI agents (buyer agents)** (Claude Desktop, Cursor, Cline, any MCP client) that need to pay for tools they discover at runtime. The agent uses `@davidmaronio/stellarpay402-mcp` — no code, no manual signing, no human in the loop.
 
 ## Components
 
@@ -69,7 +70,7 @@ Operations:
 - `init(admin)`. One time setup.
 - `register(id, owner, pay_to, price_stroops, name)`. Emits an on chain event. Owner authenticated.
 - `update(id, price_stroops, name)`. Owner only.
-- `attest(id, payer, score, comment)`. Anyone can leave a payer reputation note.
+- `attest(id, payer, rating, comment)`. Open — no auth required. Rating 1..=5. The economic cost of the preceding x402 payment is the spam filter. Passes the caller's real Stellar G-address for on-chain attribution.
 - `get(id)`. Read a registration.
 - `count()`. Total endpoints anchored.
 
@@ -77,11 +78,42 @@ Registrations are best effort. If the on chain call fails, the database row is s
 
 ### 5. Marketplace web app (Next.js 15, App Router)
 
-- `/`. Landing page.
-- `/marketplace`. Public catalog with search, stats bar, per endpoint cards.
-- `/marketplace/[userSlug]/[slug]`. Per endpoint detail page with three integration examples (curl, `@x402/stellar` SDK, MCP) and the on chain payment receipts table.
-- `/dashboard`. Authenticated endpoint manager with create, edit, delete, re anchor, and live counters.
-- `/login`, `/register`. better-auth (email and GitHub OAuth).
+- `/`. Landing page — A2A hero, 6-step orbital animation (list → anchor → discover → pay → settle → attest).
+- `/marketplace`. Public catalog — "AI Agent" badge, "on-chain" badge, inline ★ rating on every card.
+- `/marketplace/[userSlug]/[slug]`. Endpoint detail — 4 stat cards (requests, paid, earned, avg rating), receipts table, attestation list with Stellar Expert links, star rating form.
+- `/dashboard`. Authenticated endpoint manager — create, edit, delete, re-anchor, "AI Agent" badge, live counters.
+- `/login`, `/register`. better-auth (email + GitHub OAuth).
+
+### 6. AI demo endpoint — built-in seller agent
+
+**Location:** `/api/demo/ai-answer`
+
+Answers any natural language question. Backed by `claude-haiku-4-5-20251001` (Anthropic API) if `ANTHROPIC_API_KEY` is set; falls back to a smart mock. Register it in the dashboard with "AI-powered" checked and a USDC price — it becomes the seller agent in the A2A demo.
+
+Response shape:
+```json
+{
+  "question": "...",
+  "answer": "...",
+  "model": "claude-haiku-4-5-20251001",
+  "latencyMs": 1700,
+  "paidVia": "x402 · Stellar testnet · USDC",
+  "poweredBy": "StellarPay402 agent-to-agent marketplace"
+}
+```
+
+### 7. On-chain attestation system
+
+**API:** `POST /api/marketplace/[user]/[slug]/attest`
+**Client component:** `src/components/ui/attest-form.tsx`
+**Soroban bridge:** `attestEndpointOnChain()` in `src/lib/registry.ts`
+
+Flow:
+1. Caller submits `{ rating, comment, payerAddress }` to the API route
+2. Rating saved to `attestations` table in PostgreSQL
+3. `attest()` called on Soroban contract — emits permanent `("att", endpoint_id, payer)` event
+4. Stellar Expert link returned to UI
+5. Avg rating updated on marketplace cards + endpoint stat card
 
 ### 6. `@davidmaronio/stellarpay402-mcp` npm package
 
@@ -105,11 +137,17 @@ endpoints
   stellar_address, active, description,
   total_requests, paid_requests, total_earned,
   on_chain_tx_hash,
+  is_ai_powered,             ← AI Agent badge in marketplace
   created_at, updated_at
 
 payments
   id, endpoint_id, payer_address, amount_usdc,
   tx_hash, network, settled_at
+
+attestations
+  id, endpoint_id, payer_address, rating (1–5),
+  comment, tx_hash (Soroban attest() tx),
+  created_at
 
 request_logs
   id, endpoint_id, payment_id, status (paid|unpaid|error),
@@ -129,13 +167,15 @@ Authenticated
   /dashboard                     Endpoint manager
 
 Public APIs (CORS open)
-  /api/marketplace                          List of all active endpoints
-  /api/marketplace/[user]/[slug]/receipts   Public payment ledger for one endpoint
-  /api/mcp/[user]/[slug]                    MCP tool definition + ready-to-paste config
+  /api/marketplace                               List of all active endpoints (includes avgRating, ratingCount, isAiPowered)
+  /api/marketplace/[user]/[slug]/receipts        Public payment ledger for one endpoint
+  /api/marketplace/[user]/[slug]/attest          POST — submit star attestation (saves to DB + calls Soroban attest())
+  /api/mcp/[user]/[slug]                         MCP tool definition + ready-to-paste config
+  /api/demo/ai-answer                            GET/POST — Claude Haiku Q&A (the built-in seller agent)
 
 Authenticated APIs
-  /api/endpoints                 GET (list) / POST (create)
-  /api/endpoints/[id]            PATCH (edit) / DELETE / POST (re-anchor)
+  /api/endpoints                 GET (list) / POST (create, includes isAiPowered)
+  /api/endpoints/[id]            PATCH (edit, includes isAiPowered) / DELETE / POST (re-anchor)
   /api/auth/[...all]             better-auth
 
 x402 + facilitator
@@ -208,10 +248,11 @@ response plus a Stellar Expert link.
 | Database | PostgreSQL + Drizzle ORM (Supabase) |
 | Auth | better-auth (email + GitHub OAuth) |
 | Payments | x402 v2 (`@x402/core`, `@x402/stellar`) |
-| Smart contract | Soroban (Rust) |
+| AI (demo endpoint) | Claude Haiku (`claude-haiku-4-5-20251001`) via Anthropic API |
+| Smart contract | Soroban (Rust, `soroban-sdk` v21) |
 | MCP runtime | `@modelcontextprotocol/sdk` |
 | Styling | Tailwind CSS |
-| Deployment | Vercel for the web app, npm registry for the MCP package |
+| Deployment | Vercel (app) · Supabase (database) · npm (MCP package) |
 
 ## Out of scope (post hackathon)
 
@@ -220,17 +261,17 @@ response plus a Stellar Expert link.
 - Charts and time series analytics
 - Stripe and fiat on ramp
 - Team accounts and org workspaces
-- Endpoint reputation aggregation in the marketplace UI. The contract supports `attest`. The UI does not yet read it.
 - A generic third party MCP client. I ship my own as `@davidmaronio/stellarpay402-mcp`.
 
 ## Hackathon alignment
 
 | Judging signal | How I hit it |
 | --- | --- |
-| Live, reproducible end-to-end demo | Claude Desktop call, x402 settle, upstream response, Stellar Expert link. About 5 seconds. |
-| Real Stellar testnet interaction | Every paid call is a real `payment` operation on testnet, visible on Stellar Expert. |
-| Hybrid off-chain + on-chain architecture | Heavy logic off chain in Next.js. Soroban contract anchors every listing on chain. |
-| Safety / spending caps | Server side per-payer hourly USDC cap enforced in the proxy. |
-| On-chain attestations / receipts | `EndpointRegistry` `register` events plus the per-endpoint receipts page link every payment back to Stellar. |
-| Open-source repo and README | <https://github.com/davidmaronio/StellarPay402> |
-| Frictionless judge experience | One MCP server entry. No clone. No install. `npx -y @davidmaronio/stellarpay402-mcp@latest`. |
+| Live, reproducible E2E demo | Claude Desktop → MCP → x402 → Stellar settlement → response → Stellar Expert link. ~5 seconds. |
+| Agent-to-agent (unique angle) | Built-in AI Answer Agent (Claude Haiku) listed as a paid endpoint. Buyer agent pays seller agent on Stellar with zero humans. |
+| Real Stellar testnet interaction | Every paid call is a real USDC `payment` op on testnet, publicly visible on Stellar Expert. |
+| Hybrid off-chain + on-chain | Heavy logic off-chain in Next.js. Soroban contract anchors listings (`register`) and reputation (`attest`). |
+| On-chain attestations (reputation) | `attest()` called after every rated call — emits permanent event with caller's real Stellar address, rating, and comment. Star ratings shown on marketplace cards and endpoint pages. |
+| Safety / spending caps | Server-side per-payer hourly USDC cap enforced in the proxy. Agents cannot drain a wallet. |
+| Open-source repo | <https://github.com/davidmaronio/StellarPay402> |
+| Frictionless judge experience | `npx -y @davidmaronio/stellarpay402-mcp@latest`. No clone, no install, no code. |
