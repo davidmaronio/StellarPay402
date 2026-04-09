@@ -118,9 +118,7 @@ export default function LandingPage() {
           </h1>
 
           <p className="mt-5 max-w-xl text-center text-sm md:text-base text-foreground/85 leading-relaxed">
-            The agent-to-agent API marketplace on Stellar. List any HTTP endpoint and set a USDC price.
-            AI agents discover it via MCP, sign an x402 payment autonomously, and get the response —
-            zero humans in the loop. Every call settles on chain in seconds.
+            List any HTTP endpoint. Set a USDC price. AI agents discover it via MCP, pay with x402, and get the response. No human approval. Every call settles on Stellar in seconds.
           </p>
 
           <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">
