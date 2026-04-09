@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LogOut, Plus } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -58,9 +59,7 @@ export function AppHeader() {
         {/* Left: brand + nav */}
         <div className="flex items-center gap-3 min-w-0">
           <Link href="/" className="flex items-center gap-2 group shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center font-bold text-sm text-primary-foreground shadow-lg shadow-primary/20">
-              S
-            </div>
+            <Image src="/icon.png" alt="StellarPay402" width={32} height={32} className="rounded-xl shadow-lg shadow-primary/20" />
             <span className="font-semibold text-foreground text-sm hidden sm:block group-hover:text-primary transition-colors">
               StellarPay402
             </span>

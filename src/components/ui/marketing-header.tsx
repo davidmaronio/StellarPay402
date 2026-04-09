@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { MenuToggleIcon } from "@/components/ui/menu-toggle-icon";
 import { useScroll } from "@/components/ui/use-scroll";
@@ -49,9 +50,7 @@ export function MarketingHeader() {
         )}
       >
         <Link href="/" className="flex items-center gap-2 group shrink-0">
-          <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center font-bold text-xs text-primary-foreground shadow-lg shadow-primary/20">
-            S
-          </div>
+          <Image src="/icon.png" alt="StellarPay402" width={28} height={28} className="rounded-lg shadow-lg shadow-primary/20" />
           <span className="font-semibold text-foreground text-sm group-hover:text-primary transition-colors">
             StellarPay402
           </span>
