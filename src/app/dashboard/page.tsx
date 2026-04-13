@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Plus, Copy, ExternalLink, Zap, CheckCircle, Bot, Trash2, Anchor, RefreshCw, Pencil, X, LayoutGrid, Activity, Wallet } from "lucide-react";
+import { Plus, Copy, ExternalLink, Zap, CheckCircle, Bot, Trash2, Anchor, RefreshCw, Pencil, X, LayoutGrid, Activity, Wallet, Key } from "lucide-react";
 import { AppHeader } from "@/components/ui/app-header";
 
 interface Endpoint {
@@ -32,6 +32,10 @@ export default function DashboardPage() {
   const [copiedMcp, setCopiedMcp] = useState<string | null>(null);
   const [editing, setEditing]     = useState<Endpoint | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [apiKey, setApiKey]         = useState<string | null>(null);
+  const [apiKeyVisible, setApiKeyVisible] = useState(false);
+  const [generatingKey, setGeneratingKey] = useState(false);
+  const [copiedKey, setCopiedKey]   = useState(false);
 
   useEffect(() => {
     if (!isPending && !session) router.push("/login");
@@ -99,6 +103,28 @@ export default function DashboardPage() {
     const updated = await res.json();
     setEndpoints((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
     setEditing(null);
+  }
+
+  async function loadApiKey() {
+    const res = await fetch("/api/keys");
+    const data = await res.json();
+    setApiKey(data.apiKey);
+    setApiKeyVisible(true);
+  }
+
+  async function generateApiKey() {
+    setGeneratingKey(true);
+    const res = await fetch("/api/keys", { method: "POST" });
+    const data = await res.json();
+    setApiKey(data.apiKey);
+    setApiKeyVisible(true);
+    setGeneratingKey(false);
+  }
+
+  function copyApiKey(key: string) {
+    navigator.clipboard.writeText(key);
+    setCopiedKey(true);
+    setTimeout(() => setCopiedKey(false), 2000);
   }
 
   async function reanchorEndpoint(endpoint: Endpoint) {
@@ -357,6 +383,53 @@ export default function DashboardPage() {
             })}
           </div>
         )}
+        {/* API Key */}
+        <div className="mt-10 bg-card border border-border rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center">
+              <Key size={14} className="text-muted-foreground" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-foreground">API Key</h2>
+              <p className="text-xs text-muted-foreground">Use with the CLI to register endpoints programmatically</p>
+            </div>
+          </div>
+
+          {apiKeyVisible && apiKey ? (
+            <div className="flex items-center gap-2">
+              <code className="flex-1 bg-muted border border-border rounded-lg px-3 py-2 text-xs font-mono text-foreground truncate">
+                {apiKey}
+              </code>
+              <button
+                onClick={() => copyApiKey(apiKey)}
+                className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-secondary border border-border hover:bg-accent transition-colors"
+              >
+                {copiedKey ? <CheckCircle size={13} className="text-green-500" /> : <Copy size={13} />}
+                {copiedKey ? "Copied" : "Copy"}
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={loadApiKey}
+                className="text-xs px-4 py-2 rounded-lg bg-secondary border border-border hover:bg-accent transition-colors"
+              >
+                Reveal key
+              </button>
+              <button
+                onClick={generateApiKey}
+                disabled={generatingKey}
+                className="text-xs px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {generatingKey ? "Generating…" : "Generate new key"}
+              </button>
+            </div>
+          )}
+
+          <p className="text-xs text-muted-foreground mt-3 font-mono">
+            npx stellarpay402 login --key &lt;your-key&gt; --stellar &lt;G...&gt;
+          </p>
+        </div>
       </main>
 
       {/* Edit modal */}
