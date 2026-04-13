@@ -316,11 +316,12 @@ This script:
 ## CLI — Register any API in one command
 
 ```bash
-# 1. Get your API key from the dashboard → API Key section
-# 2. Save it locally once
+# Step 1 — Sign up at https://stellar-pay402.vercel.app/register
+# Step 2 — Go to Dashboard → API Key section → Generate key
+# Step 3 — Save your key and Stellar address locally (one time)
 npx stellarpay402 login --key sp402_xxx --stellar GYOUR_STELLAR_ADDRESS
 
-# 3. Register any API endpoint
+# Step 4 — Register any API endpoint
 npx stellarpay402 register --url https://myapi.com/data --price 0.001
 
 # Optional flags
