@@ -1,0 +1,31 @@
+{
+  "name": "stellarpay402",
+  "version": "0.1.1",
+  "description": "Register your API on the StellarPay402 marketplace — pay-per-request on Stellar",
+  "main": "index.mjs",
+  "bin": {
+    "stellarpay402": "index.mjs"
+  },
+  "exports": "./index.mjs",
+  "type": "module",
+  "files": [
+    "index.mjs"
+  ],
+  "keywords": [
+    "stellar",
+    "x402",
+    "payments",
+    "api",
+    "micropayments",
+    "usdc"
+  ],
+  "author": "davidmaronio",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/davidmaronio/StellarPay402.git"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

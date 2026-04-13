@@ -8,6 +8,7 @@ Built for [Stellar Hacks: Agents 2026](https://dorahacks.io).
 |---|---|
 | **Live demo** | <https://stellar-pay402.vercel.app> |
 | **npm (MCP server)** | <https://www.npmjs.com/package/@davidmaronio/stellarpay402-mcp> |
+| **npm (CLI)** | <https://www.npmjs.com/package/stellarpay402> |
 | **Soroban contract** | `CCCCETOWJQQPIGRKSJW7M4ULM7MBKIVTIRLA7NJTVSGR3XG2KSZZXYA7` (testnet) |
 | **Stellar Expert** | [View contract](https://stellar.expert/explorer/testnet/contract/CCCCETOWJQQPIGRKSJW7M4ULM7MBKIVTIRLA7NJTVSGR3XG2KSZZXYA7) |
 
@@ -30,7 +31,20 @@ HTTP 402 was reserved for "Payment Required" in 1996. The x402 protocol makes it
 
 ## How it works
 
-**For API owners (sellers):** Go to the dashboard. Paste your HTTPS URL. Set a USDC price per call. You get a paid proxy URL back. Check "AI-powered" if the endpoint is backed by an AI model. Nothing changes on your side.
+**For API owners (sellers):** Two ways to register:
+
+**Option A — Dashboard (browser):** Go to the dashboard, paste your HTTPS URL, set a USDC price per call.
+
+**Option B — CLI (one command):**
+```bash
+# Install and save your key once
+npx stellarpay402 login --key sp402_xxx --stellar G...
+
+# Register any API endpoint
+npx stellarpay402 register --url https://myapi.com/data --price 0.001 --name "My API"
+```
+
+Get your API key from the dashboard → API Key section. Your endpoint goes live instantly — anchored on Soroban, discoverable by any buyer agent.
 
 **For AI agents (buyers):** Install `@davidmaronio/stellarpay402-mcp` from npm. Add one block to your Claude Desktop or Cursor config. Every public endpoint in the marketplace shows up as a callable tool with the price baked in. When the AI calls a tool, the MCP server signs the x402 payment with its configured Stellar wallet and returns the API response plus a Stellar Expert link.
 
@@ -54,6 +68,7 @@ Zero humans at any step.
 
 ## What is in the repo
 
+- **CLI** (`stellarpay402` on npm) — register any API endpoint from the terminal in one command
 - **Next.js 15 web app** — marketplace, dashboard, public catalog, receipts, and star rating pages
 - **Pay-per-call proxy** at `/{userSlug}/{slug}` — returns HTTP 402 without payment, forwards with payment
 - **Self-hosted x402 facilitator** at `/api/facilitator/*` — embedded `@x402/core` + `@x402/stellar`, no external dependency
@@ -73,6 +88,7 @@ flowchart TB
         buyer["Buyer AI agent\n(Claude Desktop + MCP)"]
         seller["Seller AI agent\n(AI Answer Agent endpoint)"]
         dev["API owner\n(browser dashboard)"]
+        cli["Developer\n(npx stellarpay402 register)"]
         human["Human caller\n(curl / JS SDK)"]
     end
 
@@ -84,6 +100,7 @@ flowchart TB
         proxy["Pay-per-call proxy\n/{user}/{slug}"]
         facilitator["x402 facilitator\n/api/facilitator/*"]
         dashboard["Dashboard + Marketplace\n/dashboard · /marketplace"]
+        apiV1["REST API\n/api/v1/register\n(CLI endpoint)"]
         aiEndpoint["AI demo endpoint\n/api/demo/ai-answer\n(Claude Haiku)"]
         attestApi["Attestation API\n/api/marketplace/.../attest"]
         guard["Per-payer hourly\nsafety cap"]
@@ -103,6 +120,9 @@ flowchart TB
     mcpSrv -- "GET + X-PAYMENT" --> proxy
     human -- "GET + X-PAYMENT" --> proxy
     dev -- "HTTPS" --> dashboard
+    cli -- "POST /api/v1/register" --> apiV1
+    apiV1 --> db
+    apiV1 --> bridge
     dashboard --> db
     dashboard --> bridge
     proxy --> guard
@@ -150,11 +170,15 @@ StellarPay402/
 │   └── registry.ts                            Soroban bridge (register + attest)
 ├── mcp-server/                                @davidmaronio/stellarpay402-mcp
 ├── contracts/endpoint_registry/              Soroban contract (Rust)
+├── cli/
+│   ├── index.mjs                              CLI — npx stellarpay402 register
+│   └── package.json                           Published as "stellarpay402" on npm
 ├── scripts/
 │   ├── test-payment.mjs                       End-to-end x402 payment test
 │   ├── reanchor-all.mjs                       Re-anchor all endpoints after contract redeploy
 │   ├── migrate-attestations.mjs               Create attestations table
-│   └── migrate-ai-powered.mjs                 Add is_ai_powered column
+│   ├── migrate-ai-powered.mjs                 Add is_ai_powered column
+│   └── migrate-api-key.mjs                    Add api_key column for CLI auth
 └── docs/PRD.md
 ```
 
@@ -169,6 +193,7 @@ cp .env.local.example .env.local   # fill in the variables below
 npm install
 node scripts/migrate-attestations.mjs   # create attestations table
 node scripts/migrate-ai-powered.mjs     # add is_ai_powered column
+node scripts/migrate-api-key.mjs        # add api_key column for CLI
 npm run dev
 ```
 
@@ -285,6 +310,29 @@ This script:
 7. Calls again with `X-PAYMENT` header, expects 200
 8. Submits a 5-star attestation anchored on Soroban
 9. Prints the Stellar Expert link to the settled transaction
+
+---
+
+## CLI — Register any API in one command
+
+```bash
+# 1. Get your API key from the dashboard → API Key section
+# 2. Save it locally once
+npx stellarpay402 login --key sp402_xxx --stellar GYOUR_STELLAR_ADDRESS
+
+# 3. Register any API endpoint
+npx stellarpay402 register --url https://myapi.com/data --price 0.001
+
+# Optional flags
+npx stellarpay402 register \
+  --url https://myapi.com/data \
+  --price 0.001 \
+  --name "My Data API" \
+  --desc "Returns live market data" \
+  --ai   # mark as AI-powered
+```
+
+The CLI authenticates with your API key (no session cookie needed), registers the endpoint in the database, anchors it on the Soroban `EndpointRegistry`, and prints the proxy URL. From that moment, any buyer agent can discover and pay for it.
 
 ---
 

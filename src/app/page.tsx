@@ -24,7 +24,7 @@ const flowData: TimelineItem[] = [
     title: "List your API",
     date: "Step 1",
     content:
-      "Paste your HTTPS API URL into the dashboard and set a USDC price per request. You get a paid proxy URL back. No code on your side.",
+      "Paste your HTTPS API URL into the dashboard — or run npx stellarpay402 register --url https://myapi.com --price 0.001 from your terminal. You get a paid proxy URL back. No code changes on your side.",
     category: "Owner",
     icon: FilePlus2,
     relatedIds: [2],
@@ -134,6 +134,10 @@ export default function LandingPage() {
             >
               List your API <ArrowRight size={15} />
             </Link>
+          </div>
+          <div className="mt-4 flex items-center gap-2 bg-secondary border border-border rounded-xl px-4 py-2.5 font-mono text-xs text-muted-foreground">
+            <span className="text-primary select-none">$</span>
+            <span>npx stellarpay402 register --url https://myapi.com --price 0.001</span>
           </div>
         </motion.div>
       </LampContainer>
