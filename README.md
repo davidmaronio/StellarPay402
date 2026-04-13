@@ -116,9 +116,9 @@ flowchart TB
     target["Any target API\n(HTTPS URL)"]
     claude["Anthropic API\nclaude-haiku-4-5-20251001"]
 
-    buyer -- "stdio" --> mcpSrv
-    mcpSrv -- "GET + X-PAYMENT" --> proxy
-    human -- "GET + X-PAYMENT" --> proxy
+    buyer <-- "stdio" --> mcpSrv
+    mcpSrv <-- "GET + X-PAYMENT" --> proxy
+    human <-- "GET + X-PAYMENT" --> proxy
     dev -- "HTTPS" --> dashboard
     cli -- "POST /api/v1/register" --> apiV1
     apiV1 --> db
@@ -126,12 +126,12 @@ flowchart TB
     dashboard --> db
     dashboard --> bridge
     proxy --> guard
-    proxy --> facilitator
+    proxy <--> facilitator
     proxy --> db
-    proxy -- "forward" --> target
-    proxy -- "forward" --> aiEndpoint
+    proxy <-- "forward" --> target
+    proxy <-- "forward" --> aiEndpoint
     aiEndpoint --> claude
-    facilitator -- "verify + settle" --> usdc
+    facilitator <-- "verify + settle" --> usdc
     bridge -- "register" --> registry
     attestApi -- "attest()" --> registry
     attestApi --> db
