@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     payToAddress: stellarAddress,
     priceStroops: BigInt(Math.round(parseFloat(priceUsdc) * 1e7)),
     name,
+    isAiPowered:  Boolean(isAiPowered),
   });
 
   if (onChainTxHash) {

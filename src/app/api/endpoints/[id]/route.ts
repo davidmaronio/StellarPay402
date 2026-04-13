@@ -92,6 +92,7 @@ export async function POST(
     payToAddress: existing.stellarAddress,
     priceStroops: BigInt(Math.round(existing.priceUsdc * 1e7)),
     name:         existing.name,
+    isAiPowered:  existing.isAiPowered,
   });
 
   if (!txHash) {

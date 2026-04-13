@@ -74,9 +74,11 @@ Zero humans at any step.
 - **Self-hosted x402 facilitator** at `/api/facilitator/*` — embedded `@x402/core` + `@x402/stellar`, no external dependency
 - **MCP server** (`@davidmaronio/stellarpay402-mcp`) — published on npm, exposes every marketplace endpoint as an MCP tool
 - **AI demo endpoint** at `/api/demo/ai-answer` — Claude Haiku-powered Q&A, the built-in seller agent
-- **Attestation API** at `/api/marketplace/{user}/{slug}/attest` — saves ratings to DB + calls Soroban `attest()`
-- **Soroban contract** in Rust under `contracts/endpoint_registry/` — `register`, `update`, `attest`, `get`, `count`
+- **Attestation write API** at `/api/marketplace/{user}/{slug}/attest` — saves ratings to DB + calls Soroban `attest()`
+- **Attestation read API** at `/api/attestations` — public, agent-readable feed; query by `endpointId` or `userSlug+slug`; returns avg rating, count, and full history with on-chain tx hashes
+- **Soroban contract** in Rust under `contracts/endpoint_registry/` — `register` (with `is_ai_powered` flag), `update`, `attest`, `get`, `count`
 - **Per-payer safety cap** — hourly USDC spend limit enforced at the proxy layer, stops runaway agents
+- **Jest test suite** — unit tests for the attestation route and marketplace API (`npm test`)
 
 ---
 
@@ -349,7 +351,9 @@ See [`contracts/endpoint_registry/README.md`](./contracts/endpoint_registry/READ
 
 **Live contract (testnet):** `CCCCETOWJQQPIGRKSJW7M4ULM7MBKIVTIRLA7NJTVSGR3XG2KSZZXYA7`
 
-Functions: `init` · `register` (owner auth) · `update` (owner auth) · `attest` (open, no auth) · `get` · `count`
+Functions: `init` · `register(endpoint_id, owner, pay_to, price_stroops, name, is_ai_powered)` (owner auth) · `update` (owner auth) · `attest` (open, no auth) · `get` · `count`
+
+`is_ai_powered` is stored in `EndpointRecord` and emitted in the `reg` event, so any off-chain indexer or agent can distinguish AI-generated endpoints without querying contract storage.
 
 Every new endpoint fires a `register` tx and emits an on-chain event. Every attestation fires an `attest` tx and emits a permanent reputation event. If the website goes down, the full catalog and reputation history can be rebuilt from Stellar event logs.
 
@@ -390,6 +394,7 @@ These are the canonical packages from the [Stellar x402 quickstart](https://deve
 
 ## Docs
 
+- End-to-end flow: [`docs/HOW_IT_WORKS.md`](./docs/HOW_IT_WORKS.md)
 - Product requirements: [`docs/PRD.md`](./docs/PRD.md)
 - MCP server: [`mcp-server/README.md`](./mcp-server/README.md)
 - Soroban contract: [`contracts/endpoint_registry/README.md`](./contracts/endpoint_registry/README.md)

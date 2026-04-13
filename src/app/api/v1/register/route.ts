@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
     payToAddress: stellarAddress,
     priceStroops: BigInt(Math.round(price * 1e7)),
     name,
+    isAiPowered:  Boolean(isAiPowered),
   });
 
   if (onChainTxHash) {

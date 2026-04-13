@@ -17,11 +17,12 @@ const REGISTRY_SECRET  = process.env.REGISTRY_SUBMITTER_SECRET ?? process.env.FA
 const NETWORK_PASSPHRASE = Networks.TESTNET;
 
 export type RegisterArgs = {
-  endpointId:     string; // UUID string
-  ownerAddress:   string; // G... (Stellar)
-  payToAddress:   string; // G...
-  priceStroops:   bigint; // USDC * 1e7
+  endpointId:     string;  // UUID string
+  ownerAddress:   string;  // G... (Stellar)
+  payToAddress:   string;  // G...
+  priceStroops:   bigint;  // USDC * 1e7
   name:           string;
+  isAiPowered:    boolean; // anchored as is_ai_powered on-chain
 };
 
 function uuidToBytes16(uuid: string): Buffer {
@@ -93,6 +94,12 @@ export async function attestEndpointOnChain(args: AttestArgs): Promise<string | 
   }
 }
 
+// NOTE: The deployed contract (CCCCETOW...XYA7) is the pre-is_ai_powered version.
+// The updated contract source (contracts/endpoint_registry/src/lib.rs) includes
+// is_ai_powered in EndpointRecord and register(). Redeploy + update
+// REGISTRY_CONTRACT_ID to activate on-chain AI badge anchoring.
+// Until then, is_ai_powered is stored in Postgres only; all other contract
+// calls (attest, get, count) are unaffected.
 export async function registerEndpointOnChain(args: RegisterArgs): Promise<string | null> {
   if (!REGISTRY_ID || !REGISTRY_SECRET) {
     console.log("[registry] not configured — skipping on-chain registration");
@@ -121,6 +128,7 @@ export async function registerEndpointOnChain(args: RegisterArgs): Promise<strin
       new Address(args.payToAddress).toScVal(),
       nativeToScVal(args.priceStroops,                { type: "i128" }),
       xdr.ScVal.scvString(args.name),
+      xdr.ScVal.scvBool(args.isAiPowered),
     );
 
     const built = new TransactionBuilder(account, {

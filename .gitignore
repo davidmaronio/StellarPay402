@@ -43,6 +43,7 @@ next-env.d.ts
 
 # private notes
 docs/DEMO_SCRIPT.md
+docs/DORAHACKS.md
 
 # Soroban / Cargo build artifacts
 contracts/*/target/
