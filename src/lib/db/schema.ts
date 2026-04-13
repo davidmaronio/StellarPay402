@@ -8,6 +8,7 @@ export const users = pgTable("users", {
   image:            text("image"),
   slug:             text("slug").notNull().unique(), // e.g. "alice" → proxy URL /alice/...
   stellarAddress:   text("stellar_address"),         // default payout address
+  apiKey:           text("api_key").unique(),         // for CLI/programmatic access
   createdAt:        timestamp("created_at").notNull().defaultNow(),
   updatedAt:        timestamp("updated_at").notNull().defaultNow(),
 });
